@@ -12,8 +12,8 @@ declare var window: any;
 initTheme();
 initSystemFont();
 ReactDOM.render(
-    <Provider>
-        
-    </Provider>
-    
+	<Provider>
+			
+	</Provider>
+
 )
