@@ -3,3 +3,4 @@ const mapStateToProps = (state: any) => {
 		books: state.manager
 	}
 }
+//todo:补全代码

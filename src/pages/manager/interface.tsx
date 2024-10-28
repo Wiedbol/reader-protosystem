@@ -1,7 +1,6 @@
 import BookModel from "../../models/Book"
 import NoteModel from "../../models/Note"
-import BookmarkModel from "../../models/Bookmarks"
-import { NavigateFunction, Params } from "react-router-dom";
+import BookmarkModel from "../../models/Bookmark"
 export interface ManagerProps {
   books: BookModel[];
   notes: NoteModel[];

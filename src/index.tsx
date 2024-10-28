@@ -14,6 +14,6 @@ initSystemFont();
 ReactDOM.render(
 	<Provider>
 			
-	</Provider>
-
+	</Provider>,
+	document.getElementById("root")
 )
