@@ -3,6 +3,7 @@ import { HeaderProps } from "./interface";
 import { useEffect, useState } from "react";
 import { isElectron } from "react-device-detect";
 import StorageUtil from "../../utils/serviceUtils/storageUtil";
+import React from "react";
 
 export function Header(props: HeaderProps) {
   const [ state, setState ] = useState({
@@ -77,8 +78,9 @@ export function Header(props: HeaderProps) {
       }
     });
   };
-
+//todo: add header component
   return (
-    
+    <>
+    </>
   )
 }

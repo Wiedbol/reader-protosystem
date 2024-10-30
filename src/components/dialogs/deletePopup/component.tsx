@@ -8,7 +8,7 @@ export function DeletePopup(props:DeletePopupProps) {
   };
   const handleConfirm = () => {
     props.handleDeletePopup(false);
-    props.handleDeleteOpearion();
+    props.handleDeleteOperation();
     toast.success("删除成功")
   }
   return (
@@ -41,3 +41,5 @@ export function DeletePopup(props:DeletePopupProps) {
     </div>
   )
 }
+
+export default DeletePopup;

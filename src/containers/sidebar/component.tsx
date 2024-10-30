@@ -5,7 +5,7 @@ import StorageUtil from "../../utils/serviceUtils/storageUtil";
 import { openExternalUrl } from "../../utils/serviceUtils/urlUtil";
 import ShelfUtil from "../../utils/readUtils/shelfUtil";
 import { sideMenu } from "../../constants/sideMenu";
-import DeletePopup from "../../components/dialogs/deletePopup.tsx"
+import DeletePopup from "../../components/dialogs/deletePopup"
 import { useNavigate, useLocation } from "react-router-dom";
 
 export function Sidebar(props: SidebarProps) {
