@@ -1,30 +1,34 @@
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import StorageUtil from "../../utils/serviceUtils/storageUtil";
-const initState = {
+interface SidebarState {
+  mode: string;
+  shelfIndex: number;
+  isCollapsed: boolean;
+}
+const initialState: SidebarState = {
   mode: "home",
   shelfIndex: -1,
   isCollapsed: StorageUtil.getReaderConfig("isCollapsed") === "yes",
-};
-export function sidebar(
-  state = initState,
-  action: { type: string; payload: any }
-) {
-  switch (action.type) {
-    case "HANDLE_MODE":
-      return {
-        ...state,
-        mode: action.payload,
-      };
-    case "HANDLE_SHELF_INDEX":
-      return {
-        ...state,
-        shelfIndex: action.payload,
-      };
-    case "HANDLE_COLLAPSE":
-      return {
-        ...state,
-        isCollapsed: action.payload,
-      };
-    default:
-      return state;
-  }
 }
+const sidebarSlice = createSlice({
+  name: "sidebar",
+  initialState,
+  reducers: {
+    handleMode: (state, action: PayloadAction<string>) => {
+      state.mode = action.payload;
+    },
+    handleShelfIndex: (state, action: PayloadAction<number>) => {
+      state.shelfIndex = action.payload;
+    },
+    handleCollapse: (state, action: PayloadAction<boolean>) => {
+      state.isCollapsed = action.payload;
+    }
+  }
+})
+export const {
+  handleMode,
+  handleShelfIndex,
+  handleCollapse,
+} = sidebarSlice.actions;
+
+export default sidebarSlice.reducer;

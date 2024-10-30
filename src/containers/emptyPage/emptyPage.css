@@ -1,0 +1,45 @@
+.empty-page-container {
+  position: absolute;
+  top: 75px;
+  left: 203px;
+  width: calc(100vw - 203px);
+  height: calc(100vh - 75px);
+  overflow: hidden;
+}
+.empty-page-illustration {
+  height: 100%;
+  position: absolute;
+  bottom: 0px;
+  right: 0px;
+}
+.empty-illustration-container {
+  height: 350px;
+  position: absolute;
+  right: 0;
+  bottom: 0;
+
+  z-index: -1;
+  overflow: hidden;
+}
+.empty-page-info-container {
+  position: absolute;
+  left: 30px;
+  top: 80px;
+}
+.empty-page-info-main {
+  font-size: 32px;
+  line-height: 50px;
+  opacity: 1;
+  color: black;
+  background-color: rgba(255, 255, 255, 50%);
+}
+.empty-page-info-sub {
+  width: 400px;
+  font-size: 24px;
+
+  line-height: 30px;
+  opacity: 1;
+  color: black;
+  background-color: rgba(255, 255, 255, 50%);
+}
+

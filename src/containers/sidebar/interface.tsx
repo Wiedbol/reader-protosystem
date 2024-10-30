@@ -9,15 +9,7 @@ export interface SidebarProps {
   handleSortDisplay: (isSortDisplay: boolean) => void;
   handleSelectBook: (isSelectBook: boolean) => void;
   handleShelfIndex: (shelfIndex: number) => void;
-  t: (title: string) => string;
 
-  navigate: (to: string, options?: { replace?: boolean; state?: any }) => void;
-  location: {
-    pathname: string;
-    search: string;
-    hash: string;
-    state: unknown;
-  }
 }
 
 export interface SidebarState {

@@ -6,7 +6,6 @@ import readerReducer from "./slices/readerSlice";
 import viewAreaReducer from "./slices/viewAreaSlice";
 import sidebarReducer from "./slices/sidebarSlice";
 import backupPageReducer from "./slices/backupPageSlice";
-// import type { BookModel, NoteModel, BookmarkModel, HtmlBookModel } from "../models";
 import BookModel from "../models/Book"
 import NoteModel from "../models/Note"
 import BookmarkModel from "../models/Bookmark"
@@ -33,6 +32,14 @@ export type AppDispatch = typeof store.dispatch;
 export default store;
 
 // Define your state types
+export interface stateType {
+  managerState: ManagerState;
+  backupPageState: BackupPageState;
+  progressPanelState: ProgressPanelState;
+  readerState: ReaderState;
+  sidebarState: SidebarState;
+  viewAreaState: ViewAreaState;
+}
 export interface ManagerState {
   books: BookModel[];
   deletedBooks: BookModel[];

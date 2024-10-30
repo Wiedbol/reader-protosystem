@@ -6,7 +6,7 @@ import StorageUtil from '../../utils/serviceUtils/storageUtil';
 import AddFavorite from '../../utils/readUtils/addFavorite';
 import { isMobile } from 'react-device-detect';
 import { Tooltip } from 'react-tooltip';
-import Arrow from '../../component/arrow';
+import Arrow from '../../components/arrow';
 
 
 export function Manager(props: ManagerProps) {

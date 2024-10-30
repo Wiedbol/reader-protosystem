@@ -1,87 +1,104 @@
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import StorageUtil from "../../utils/serviceUtils/storageUtil";
-const initState = {
+import type BookmarkModel from "../../models/Bookmark";
+import type NoteModel from "../../models/Note";
+import type HtmlBookModel from "../../models/HtmlBook";
+
+interface ReaderState {
+  bookmarks: BookmarkModel[];
+  notes: NoteModel[];
+  digests: NoteModel[];
+  chapters: any[] | null;
+  currentChapter: string;
+  currentChapterIndex: number;
+  color: number;
+  noteKey: string;
+  originalText: string;
+  htmlBook: HtmlBookModel | null;
+  readerMode: string;
+  section: any; // Add proper type if available
+}
+
+const getInitialColor = (): number => {
+  const highlightIndex = parseInt(StorageUtil.getReaderConfig("highlightIndex"));
+  if (highlightIndex) return highlightIndex;
+
+  const appSkin = StorageUtil.getReaderConfig("appSkin");
+  const isOSNight = StorageUtil.getReaderConfig("isOSNight");
+
+  if (appSkin === "night" || (appSkin === "system" && isOSNight === "yes")) {
+    return 3;
+  }
+  return 0;
+};
+
+const initialState: ReaderState = {
   bookmarks: [],
   notes: [],
   digests: [],
   chapters: null,
   currentChapter: "",
   currentChapterIndex: 0,
-
-  color: parseInt(StorageUtil.getReaderConfig("highlightIndex"))
-    ? parseInt(StorageUtil.getReaderConfig("highlightIndex"))
-    : StorageUtil.getReaderConfig("appSkin") === "night" ||
-      (StorageUtil.getReaderConfig("appSkin") === "system" &&
-        StorageUtil.getReaderConfig("isOSNight") === "yes")
-    ? 3
-    : 0,
+  color: getInitialColor(),
   noteKey: "",
   originalText: "",
   htmlBook: null,
   readerMode: StorageUtil.getReaderConfig("readerMode") || "double",
+  section: null,
 };
-export function reader(
-  state = initState,
-  action: { type: string; payload: any }
-) {
-  switch (action.type) {
-    case "HANDLE_BOOKMARKS":
-      return {
-        ...state,
-        bookmarks: action.payload,
-      };
-    case "HANDLE_NOTES":
-      return {
-        ...state,
-        notes: action.payload,
-      };
 
-    case "HANDLE_CURRENT_CHAPTER":
-      return {
-        ...state,
-        currentChapter: action.payload,
-      };
-    case "HANDLE_CURRENT_CHAPTER_INDEX":
-      return {
-        ...state,
-        currentChapterIndex: action.payload,
-      };
-    case "HANDLE_ORIGINAL_TEXT":
-      return {
-        ...state,
-        originalText: action.payload,
-      };
-    case "HANDLE_HTML_BOOK":
-      return {
-        ...state,
-        htmlBook: action.payload,
-      };
-    case "HANDLE_COLOR":
-      return {
-        ...state,
-        color: action.payload,
-      };
+const readerSlice = createSlice({
+  name: 'reader',
+  initialState,
+  reducers: {
+    handleBookmarks: (state, action: PayloadAction<BookmarkModel[]>) => {
+      state.bookmarks = action.payload;
+    },
+    handleNotes: (state, action: PayloadAction<NoteModel[]>) => {
+      state.notes = action.payload;
+    },
+    handleCurrentChapter: (state, action: PayloadAction<string>) => {
+      state.currentChapter = action.payload;
+    },
+    handleCurrentChapterIndex: (state, action: PayloadAction<number>) => {
+      state.currentChapterIndex = action.payload;
+    },
+    handleOriginalText: (state, action: PayloadAction<string>) => {
+      state.originalText = action.payload;
+    },
+    handleHtmlBook: (state, action: PayloadAction<HtmlBookModel>) => {
+      state.htmlBook = action.payload;
+    },
+    handleColor: (state, action: PayloadAction<number>) => {
+      state.color = action.payload;
+    },
+    handleNoteKey: (state, action: PayloadAction<string>) => {
+      state.noteKey = action.payload;
+    },
+    handleDigests: (state, action: PayloadAction<NoteModel[]>) => {
+      state.digests = action.payload;
+    },
+    handleSection: (state, action: PayloadAction<any>) => {
+      state.section = action.payload;
+    },
+    handleChapters: (state, action: PayloadAction<any[] | null>) => {
+      state.chapters = action.payload;
+    },
+  },
+});
 
-    case "HANDLE_NOTE_KEY":
-      return {
-        ...state,
-        noteKey: action.payload,
-      };
-    case "HANDLE_DIGESTS":
-      return {
-        ...state,
-        digests: action.payload,
-      };
-    case "HANDLE_SECTION":
-      return {
-        ...state,
-        section: action.payload,
-      };
-    case "HANDLE_CHAPTERS":
-      return {
-        ...state,
-        chapters: action.payload,
-      };
-    default:
-      return state;
-  }
-}
+export const {
+  handleBookmarks,
+  handleNotes,
+  handleCurrentChapter,
+  handleCurrentChapterIndex,
+  handleOriginalText,
+  handleHtmlBook,
+  handleColor,
+  handleNoteKey,
+  handleDigests,
+  handleSection,
+  handleChapters,
+} = readerSlice.actions;
+
+export default readerSlice.reducer;

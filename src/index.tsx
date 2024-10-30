@@ -4,7 +4,7 @@ import "./assets/styles/reset.css";
 import "./assets/styles/global.css";
 import "./assets/styles/style.css";
 import { Provider } from 'react-redux';
-// import store from './'
+import store from './store'
 import { initSystemFont, initTheme } from './utils/serviceUtils/launchUtil';
 
 
@@ -12,8 +12,8 @@ declare var window: any;
 initTheme();
 initSystemFont();
 ReactDOM.render(
-	<Provider>
-			
+	<Provider store={store}>
+			<Router />
 	</Provider>,
 	document.getElementById("root")
 )
