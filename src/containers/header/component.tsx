@@ -80,7 +80,6 @@ export function Header(props: HeaderProps) {
       }
     });
   };
-//todo: add header component
   return (
       <div
         className="header"
@@ -157,7 +156,7 @@ export function Header(props: HeaderProps) {
               className="setting-icon-container"
               onClick={() => {
                 // syncFromLocation();
-                handleSync();
+                // handleSync();
               }}
               style={{ marginTop: "2px" }}
             >

@@ -7,12 +7,10 @@ import { ImportLocalProps } from './interface';
 import ImportLocal from './component';
 
 interface ImportLocalContainerProps {
-  dragItem: string;
   handleDrag: (isDrag: boolean) => void;
 }
 
 const ImportLocalContainer: React.FC<ImportLocalContainerProps> = ({
-  dragItem,
   handleDrag,
 }) => {
   const dispatch = useDispatch<AppDispatch>();
