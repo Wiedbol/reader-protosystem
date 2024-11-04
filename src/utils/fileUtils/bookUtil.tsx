@@ -154,11 +154,10 @@ class BookUtil {
   }
   static async RedirectBook(
     book: BookModel,
-    t: (string) => string,
     history: any
   ) {
     if (!(await this.isBookExist(book.key, book.path))) {
-      toast.error(t("Book not exist"));
+      toast.error("书籍不存在");
       return;
     }
     let ref = book.format.toLowerCase();
