@@ -12,7 +12,7 @@ const backupPageSlice = createSlice({
   name: "backupPage",
   initialState,
   reducers: {
-    handleBackup: (state, action: PayloadAction<boolean>) => {
+    handleBackupDialog: (state, action: PayloadAction<boolean>) => {
       state.isBackup = action.payload;
     },
     handleTokenDialog: (state, action: PayloadAction<boolean>) => {
@@ -22,7 +22,7 @@ const backupPageSlice = createSlice({
 })
 
 export const {
-  handleBackup,
+  handleBackupDialog,
   handleTokenDialog,
 } = backupPageSlice.actions;
 

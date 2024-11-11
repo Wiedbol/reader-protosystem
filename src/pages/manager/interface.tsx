@@ -29,7 +29,7 @@ export interface ManagerProps {
   handleFetchBookmarks: () => void;
   handleFetchBookSortCode: () => void;
   handleFetchNoteSortCode: () => void;
-  handleFetchList: () => void;
+  handleFetchViewMode: () => void;
   handleEditDialog: (isOpenEditDialog: boolean) => void;
   handleDeleteDialog: (isOpenDeleteDialog: boolean) => void;
   handleAddDialog: (isOpenAddDialog: boolean) => void;
@@ -41,15 +41,6 @@ export interface ManagerProps {
   handleBackupDialog: (isBackup: boolean) => void;
   handleReadingState: (isReading: boolean) => void;
   handleSetting: (isSettingOpen: boolean) => void;
-
-//将原有的类组件变为函数组件，并添加props类型定义
-  navigate: (to: string, options?: { replace?: boolean; state?: any }) => void;
-  location: {
-    pathname: string;
-    search: string;
-    hash: string;
-    state: unknown;
-  }
 }
 
 export interface ManagerState {

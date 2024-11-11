@@ -1,0 +1,76 @@
+.book-bookmark-list {
+  /* max-height: 200px; */
+  width: 270px;
+  margin-left: 13px;
+  box-sizing: border-box;
+  overflow: hidden;
+  position: relative;
+}
+.book-bookmark-digest {
+  margin: 15px 5px 10px;
+  width: 240px;
+  max-height: 198px;
+  font-size: 13px;
+  line-height: 15px;
+  opacity: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+  white-space: normal;
+  word-break: keep-all;
+  overflow: hidden;
+  position: relative;
+}
+.book-bookmark-index {
+  float: left;
+  width: 200px;
+  height: 16px;
+  font-size: 13px;
+  opacity: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+  white-space: normal;
+  word-break: keep-all;
+  overflow: hidden;
+  position: relative;
+  top: 5px;
+}
+.book-bookmark-progress {
+  width: 30px;
+  height: 18px;
+  margin-left: 12px;
+  /* margin-top: 8px; */
+  font-size: 13px;
+  opacity: 1;
+  float: left;
+  line-height: 15px;
+}
+.book-bookmark-link {
+  float: left;
+  width: 63px;
+  height: 26px;
+  opacity: 1;
+  border-radius: 13px;
+  font-size: 11px;
+  line-height: 24px;
+  opacity: 1;
+  text-align: center;
+  cursor: pointer;
+  position: relative;
+  left: 10px;
+  bottom: 5px;
+}
+.bookmark-page-list-item-title {
+  width: 140px;
+  overflow: hidden;
+  height: 18px;
+  margin-top: -3px;
+  text-overflow: ellipsis;
+  float: left;
+  margin-left: 5px;
+}

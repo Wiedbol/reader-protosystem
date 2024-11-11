@@ -1,61 +1,83 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import StorageUtil from "../../utils/serviceUtils/storageUtil";
-import type BookmarkModel from "../../models/Bookmark";
+import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import type NoteModel from "../../models/Note";
+import type BookmarkModel from "../../models/Bookmark";
 import type HtmlBookModel from "../../models/HtmlBook";
-
+import AddTrash from "../../utils/readUtils/addTrash";
+import localforage from 'localforage';
+declare var window: any;
 interface ReaderState {
-  bookmarks: BookmarkModel[];
   notes: NoteModel[];
+  originalText: string;
+  color: number;
+  bookmarks: BookmarkModel[];
   digests: NoteModel[];
-  chapters: any[] | null;
+  htmlBook: HtmlBookModel | null;
   currentChapter: string;
   currentChapterIndex: number;
-  color: number;
+  chapters: any[];
   noteKey: string;
-  originalText: string;
-  htmlBook: HtmlBookModel | null;
-  readerMode: string;
-  section: any; // Add proper type if available
 }
 
-const getInitialColor = (): number => {
-  const highlightIndex = parseInt(StorageUtil.getReaderConfig("highlightIndex"));
-  if (highlightIndex) return highlightIndex;
-
-  const appSkin = StorageUtil.getReaderConfig("appSkin");
-  const isOSNight = StorageUtil.getReaderConfig("isOSNight");
-
-  if (appSkin === "night" || (appSkin === "system" && isOSNight === "yes")) {
-    return 3;
-  }
-  return 0;
-};
-
 const initialState: ReaderState = {
-  bookmarks: [],
   notes: [],
+  originalText: '',
+  color: 0,
+  bookmarks: [],
   digests: [],
-  chapters: null,
-  currentChapter: "",
-  currentChapterIndex: 0,
-  color: getInitialColor(),
-  noteKey: "",
-  originalText: "",
   htmlBook: null,
-  readerMode: StorageUtil.getReaderConfig("readerMode") || "double",
-  section: null,
+  currentChapter: '',
+  currentChapterIndex: 0,
+  chapters: [],
+  noteKey: '',
 };
+
+const handleKeyRemove = (items: any[], arr: string[]) => {
+  if (!arr[0]) return items;
+  return items.filter(item => !arr.includes(item.bookKey));
+};
+
+export const fetchNotes = createAsyncThunk(
+  'reader/fetchNotes',
+  async (_, { dispatch }) => {
+    const notes: NoteModel[] = await window.localforage.getItem("notes") || [];
+    const keyArr = AddTrash.getAllTrash();
+    const filteredNotes = handleKeyRemove(notes, keyArr);
+    const digests = filteredNotes.filter(item => item.notes === "");
+    dispatch(handleDigests(digests));
+    return filteredNotes;
+  }
+);
+
+export const fetchBookmarks = createAsyncThunk(
+  'reader/fetchBookmarks',
+  async () => {
+    const bookmarks: BookmarkModel[] = await window.localforage.getItem("bookmarks") || [];
+    const keyArr = AddTrash.getAllTrash();
+    return handleKeyRemove(bookmarks, keyArr);
+  }
+);
 
 const readerSlice = createSlice({
   name: 'reader',
   initialState,
   reducers: {
+    handleNotes: (state, action: PayloadAction<NoteModel[]>) => {
+      state.notes = action.payload;
+    },
+    handleOriginalText: (state, action: PayloadAction<string>) => {
+      state.originalText = action.payload;
+    },
+    handleColor: (state, action: PayloadAction<number>) => {
+      state.color = action.payload;
+    },
     handleBookmarks: (state, action: PayloadAction<BookmarkModel[]>) => {
       state.bookmarks = action.payload;
     },
-    handleNotes: (state, action: PayloadAction<NoteModel[]>) => {
-      state.notes = action.payload;
+    handleDigests: (state, action: PayloadAction<NoteModel[]>) => {
+      state.digests = action.payload;
+    },
+    handleHtmlBook: (state, action: PayloadAction<HtmlBookModel>) => {
+      state.htmlBook = action.payload;
     },
     handleCurrentChapter: (state, action: PayloadAction<string>) => {
       state.currentChapter = action.payload;
@@ -63,42 +85,35 @@ const readerSlice = createSlice({
     handleCurrentChapterIndex: (state, action: PayloadAction<number>) => {
       state.currentChapterIndex = action.payload;
     },
-    handleOriginalText: (state, action: PayloadAction<string>) => {
-      state.originalText = action.payload;
-    },
-    handleHtmlBook: (state, action: PayloadAction<HtmlBookModel>) => {
-      state.htmlBook = action.payload;
-    },
-    handleColor: (state, action: PayloadAction<number>) => {
-      state.color = action.payload;
+    handleChapters: (state, action: PayloadAction<any[]>) => {
+      state.chapters = action.payload;
     },
     handleNoteKey: (state, action: PayloadAction<string>) => {
       state.noteKey = action.payload;
     },
-    handleDigests: (state, action: PayloadAction<NoteModel[]>) => {
-      state.digests = action.payload;
-    },
-    handleSection: (state, action: PayloadAction<any>) => {
-      state.section = action.payload;
-    },
-    handleChapters: (state, action: PayloadAction<any[] | null>) => {
-      state.chapters = action.payload;
-    },
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchNotes.fulfilled, (state, action) => {
+        state.notes = action.payload;
+      })
+      .addCase(fetchBookmarks.fulfilled, (state, action) => {
+        state.bookmarks = action.payload;
+      });
   },
 });
 
 export const {
-  handleBookmarks,
   handleNotes,
+  handleOriginalText,
+  handleColor,
+  handleBookmarks,
+  handleDigests,
+  handleHtmlBook,
   handleCurrentChapter,
   handleCurrentChapterIndex,
-  handleOriginalText,
-  handleHtmlBook,
-  handleColor,
-  handleNoteKey,
-  handleDigests,
-  handleSection,
   handleChapters,
+  handleNoteKey,
 } = readerSlice.actions;
 
 export default readerSlice.reducer;

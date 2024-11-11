@@ -30,7 +30,7 @@ export function Manager(props: ManagerProps) {
     props.handleFetchBookmarks();
     props.handleFetchBookSortCode();
     props.handleFetchNoteSortCode();
-    props.handleFetchList();
+    props.handleFetchViewMode();
     props.handleReadingState(false);
   },[]);
 

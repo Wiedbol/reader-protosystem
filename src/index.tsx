@@ -6,6 +6,7 @@ import "./assets/styles/style.css";
 import { Provider } from 'react-redux';
 import store from './store'
 import { initSystemFont, initTheme } from './utils/serviceUtils/launchUtil';
+import Router from './router';
 
 
 declare var window: any;

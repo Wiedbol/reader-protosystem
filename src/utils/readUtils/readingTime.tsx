@@ -1,5 +1,5 @@
 class ReadingTime {
-  static set(bookKey: string, time: number) {
+  static setTime(bookKey: string, time: number) {
     let json = localStorage.getItem("readingTime");
     let obj = JSON.parse(json!) || {};
     obj[bookKey] = time;
