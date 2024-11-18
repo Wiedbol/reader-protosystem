@@ -7,12 +7,12 @@ import React from "react";
 
 interface DeleteIconContainerProps {
   mode: string;
-  index: number;
-  tagName: string;
+  index?: number;
+  tagName?: string;
   itemKey: string;
-  renderHighlighters: () => void;
-  handleChangeTag: (index: number) => void;
-  handleShowDelete: (DeleteKey: string) => void;
+  renderHighlighters?: () => void;
+  handleChangeTag?: (index: number) => void;
+  handleShowDelete?: (DeleteKey: string) => void;
 }
 
 const DeleteIconContainer: React.FC<DeleteIconContainerProps> = ({
@@ -40,12 +40,12 @@ const DeleteIconContainer: React.FC<DeleteIconContainerProps> = ({
     ...state,
     ...actionCreator,
     mode,
-    index,
-    tagName,
+    ...(index !== undefined && { index }),
+    ...(tagName !== undefined && { tagName }),
     itemKey,
-    renderHighlighters,
-    handleShowDelete,
-    handleChangeTag,
+    ...(renderHighlighters !== undefined && { renderHighlighters }),
+    ...(handleShowDelete !== undefined && { handleShowDelete }),
+    ...(handleChangeTag !== undefined && { handleChangeTag }),
   }
   return <DeleteIcon {...props} />
 }

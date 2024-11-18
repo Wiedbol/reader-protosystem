@@ -76,7 +76,7 @@ const readerSlice = createSlice({
     handleDigests: (state, action: PayloadAction<NoteModel[]>) => {
       state.digests = action.payload;
     },
-    handleHtmlBook: (state, action: PayloadAction<HtmlBookModel>) => {
+    handleHtmlBook: (state, action: PayloadAction<HtmlBookModel | null>) => {
       state.htmlBook = action.payload;
     },
     handleCurrentChapter: (state, action: PayloadAction<string>) => {

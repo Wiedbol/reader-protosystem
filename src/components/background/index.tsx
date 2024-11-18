@@ -14,3 +14,5 @@ const BackgroundContainer: React.FC = () => {
     />
   )
 }
+
+export default BackgroundContainer;
