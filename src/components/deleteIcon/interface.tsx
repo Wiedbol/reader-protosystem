@@ -8,7 +8,7 @@ export interface DeleteIconProps {
   index?: number;
   tagName?: string;
   isReading: boolean;
-  itemKey: string;
+  itemKey?: string;
   handleFetchNotes: () => void;
   handleFetchBookmarks: () => void;
   renderHighlighters?: () => void;

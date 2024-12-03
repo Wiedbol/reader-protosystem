@@ -1,0 +1,58 @@
+
+.header-chapter-name,
+.header-book-name {
+  width: 45vw;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  line-height: 30px;
+  text-align: center;
+  opacity: 0.3;
+}
+.header-container,
+.footer-container {
+  width: 100%;
+  display: flex;
+  justify-content: space-around;
+  height: 30px;
+}
+.header-container {
+  position: absolute;
+  top: 3px;
+}
+.footer-container {
+  position: absolute;
+  bottom: 3px;
+}
+
+.background-page-left,
+.background-page-right {
+  max-width: 45vw;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  line-height: 30px;
+  text-align: center;
+  opacity: 0.3;
+}
+.bookmark {
+  height: 40px;
+  width: 20px;
+  padding: 0px;
+  -webkit-transform: rotate(0deg) skew(0deg);
+  transform: rotate(0deg) skew(0deg);
+  border-left: 10px solid red;
+  border-right: 10px solid red;
+  border-bottom: 10px solid transparent;
+  position: fixed;
+  top: 5px;
+  right: 70px;
+  z-index: 15;
+}
+.bookmark,
+.bookmark:before,
+.bookmark:after {
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+}

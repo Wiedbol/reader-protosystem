@@ -5,22 +5,21 @@ import { BookCoverProps } from "./interface";
 import AddFavorite from "../../utils/readUtils/addFavorite";
 import ActionDialog from "../dialogs/actionDialog";
 import StorageUtil from "../../utils/serviceUtils/storageUtil";
-import { useHistory } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import RecordLocation from "../../utils/readUtils/recordLocation";
 import { isElectron } from "react-device-detect";
 import EmptyCover from "../emptyCover";
-import { Trans } from "react-i18next";
 import BookUtil from "../../utils/fileUtils/bookUtil";
 import toast from "react-hot-toast";
 
 const BookCoverItem: React.FC<BookCoverProps> = (props) => {
   const [isFavorite, setIsFavorite] = useState(
-    AddFavorite.getAllFavorite().includes(props.book.key)
+    AddFavorite.getAllFavorites().includes(props.book.key)
   );
   const [position, setPosition] = useState({ left: 0, top: 0 });
   const [direction, setDirection] = useState("horizontal");
   const [isHover, setIsHover] = useState(false);
-  const history = useHistory();
+  const navigate = useNavigate();
 
   useEffect(() => {
     let filePath = "";
@@ -36,12 +35,12 @@ const BookCoverItem: React.FC<BookCoverProps> = (props) => {
       !filePath
     ) {
       props.handleReadingBook(props.book);
-      BookUtil.RedirectBook(props.book, props.t, history);
+      BookUtil.RedirectBook(props.book, navigate);
     }
-  }, [props, history]);
+  }, [props, navigate]);
 
   useEffect(() => {
-    setIsFavorite(AddFavorite.getAllFavorite().includes(props.book.key));
+    setIsFavorite(AddFavorite.getAllFavorites().includes(props.book.key));
   }, [props.book.key]);
 
   const handleMoreAction = (event) => {
@@ -67,16 +66,16 @@ const BookCoverItem: React.FC<BookCoverProps> = (props) => {
   const handleLoveBook = () => {
     AddFavorite.setFavorite(props.book.key);
     setIsFavorite(true);
-    toast.success(props.t("Addition successful"));
+    toast.success("添加成功");
   };
 
   const handleCancelLoveBook = () => {
     AddFavorite.clear(props.book.key);
     setIsFavorite(false);
-    if (Object.keys(AddFavorite.getAllFavorite()).length === 0 && props.mode === "favorite") {
-      history.push("/manager/empty");
+    if (Object.keys(AddFavorite.getAllFavorites()).length === 0 && props.mode === "favorite") {
+      navigate("/manager/empty");
     }
-    toast.success(props.t("Cancellation successful"));
+    toast.success("取消成功");
   };
 
   const handleJump = () => {
@@ -89,7 +88,7 @@ const BookCoverItem: React.FC<BookCoverProps> = (props) => {
     } else {
       RecentBooks.setRecent(props.book.key);
       props.handleReadingBook(props.book);
-      BookUtil.RedirectBook(props.book, props.t, history);
+      BookUtil.RedirectBook(props.book, navigate);
     }
   };
 
@@ -155,7 +154,8 @@ const BookCoverItem: React.FC<BookCoverProps> = (props) => {
                 : { height: "100%" }}
               className="lazy-image book-item-image"
               onLoad={(e) => {
-                setDirection(e.target.naturalHeight / e.target.naturalWidth > 170 / 120
+                const img = e.target as HTMLImageElement;
+                setDirection(img.naturalHeight / img.naturalWidth > 170 / 120
                   ? "horizontal"
                   : "vertical");
               }}
@@ -165,13 +165,13 @@ const BookCoverItem: React.FC<BookCoverProps> = (props) => {
 
         <p className="book-cover-item-title">{props.book.name}</p>
         <p className="book-cover-item-author">
-          <Trans>Author</Trans>: <Trans>{props.book.author}</Trans>
+          作者: {props.book.author}
         </p>
         <p className="book-cover-item-author">
-          <Trans>Publisher</Trans>: <Trans>{props.book.publisher}</Trans>
+          出版社: {props.book.publisher}
         </p>
         <div className="book-cover-item-desc">
-          <Trans>Description</Trans>: <div className="book-cover-item-desc-detail">{props.book.description ? textContent : <Trans>Empty</Trans>}</div>
+          概要: <div className="book-cover-item-desc-detail">{props.book.description ? textContent : "空"}</div>
         </div>
       </div>
 

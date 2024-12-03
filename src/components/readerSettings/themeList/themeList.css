@@ -1,0 +1,57 @@
+.background-color-setting {
+  width: calc(100% - 44px);
+  margin: 10px 22px 0px;
+}
+.background-color-text {
+  height: 20px;
+  width: 100%;
+  font-size: 15px;
+  font-weight: 500;
+  margin-bottom: -5px;
+  margin-top: 15px;
+}
+@keyframes fade-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.background-color-list {
+  margin: 10px 0px 0px;
+  width: 100%;
+  min-height: 44px;
+  padding-bottom: 6px;
+}
+.background-color-circle {
+  display: inline-block;
+  width: 35px;
+  height: 35px;
+  font-size: 20px;
+  border-radius: 50%;
+  opacity: 1;
+  cursor: pointer;
+  margin: 7px;
+  margin-top: 3px;
+  box-sizing: border-box;
+  position: relative;
+}
+
+.background-color-circle .icon-more {
+  position: absolute;
+  margin: 8px;
+}
+.background-color-circle .icon-check {
+  position: absolute;
+  margin: 8px;
+  font-weight: bold;
+}
+.background-color-circle .icon-close {
+  position: absolute;
+  margin: 6.5px;
+  font-size: 18px;
+  opacity: 0.7;
+}

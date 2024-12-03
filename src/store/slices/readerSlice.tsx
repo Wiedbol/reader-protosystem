@@ -11,7 +11,7 @@ interface ReaderState {
   color: number;
   bookmarks: BookmarkModel[];
   digests: NoteModel[];
-  htmlBook: HtmlBookModel | null;
+  htmlBook: HtmlBookModel;
   currentChapter: string;
   currentChapterIndex: number;
   chapters: any[];
@@ -24,7 +24,7 @@ const initialState: ReaderState = {
   color: 0,
   bookmarks: [],
   digests: [],
-  htmlBook: null,
+  htmlBook: {} as HtmlBookModel,
   currentChapter: '',
   currentChapterIndex: 0,
   chapters: [],
@@ -76,7 +76,7 @@ const readerSlice = createSlice({
     handleDigests: (state, action: PayloadAction<NoteModel[]>) => {
       state.digests = action.payload;
     },
-    handleHtmlBook: (state, action: PayloadAction<HtmlBookModel | null>) => {
+    handleHtmlBook: (state, action: PayloadAction<HtmlBookModel>) => {
       state.htmlBook = action.payload;
     },
     handleCurrentChapter: (state, action: PayloadAction<string>) => {

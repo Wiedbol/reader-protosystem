@@ -9,7 +9,7 @@ interface DeleteIconContainerProps {
   mode: string;
   index?: number;
   tagName?: string;
-  itemKey: string;
+  itemKey?: string;
   renderHighlighters?: () => void;
   handleChangeTag?: (index: number) => void;
   handleShowDelete?: (DeleteKey: string) => void;
@@ -42,7 +42,7 @@ const DeleteIconContainer: React.FC<DeleteIconContainerProps> = ({
     mode,
     ...(index !== undefined && { index }),
     ...(tagName !== undefined && { tagName }),
-    itemKey,
+    ...(itemKey !== undefined && { itemKey }),
     ...(renderHighlighters !== undefined && { renderHighlighters }),
     ...(handleShowDelete !== undefined && { handleShowDelete }),
     ...(handleChangeTag !== undefined && { handleChangeTag }),

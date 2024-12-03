@@ -35,7 +35,7 @@ const HtmlViewerContainer: React.FC<HtmlViewerContainerProps> = ({
     handleReadingState: (payload: boolean) => dispatch(handleReadingState(payload)),
     handleReadingBook: (payload: BookModel) => dispatch(handleReadingBook(payload)),
     handleActionDialog: (payload: boolean) => dispatch(handleActionDialog(payload)),
-    handleHtmlBook: (payload: HtmlBook | null) => dispatch(handleHtmlBook(payload)),
+    handleHtmlBook: (payload: HtmlBook | null) => dispatch(handleHtmlBook(payload as HtmlBook)),
     handleRenderBookFunc: (payload: () => void) => dispatch(handleRenderBookFunc(payload)),
     handleFetchBooks: () => dispatch(fetchBooks()),
     handleOpenMenu: (payload: boolean) => dispatch(handleOpenMenu(payload)),

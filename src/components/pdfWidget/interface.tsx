@@ -1,5 +1,4 @@
-import { RouteComponentProps } from "react-router";
-export interface PDFWidgetProps extends RouteComponentProps<any> {
+export interface PDFWidgetProps {
   handleReadingState: (readingState: boolean) => void;
 }
 export interface PDFWidgetState {

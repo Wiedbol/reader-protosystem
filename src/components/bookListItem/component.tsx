@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { useHistory } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import "./bookListItem.css";
 import RecordLocation from "../../utils/readUtils/recordLocation";
 import { BookItemProps } from "./interface";
-import { Trans } from "react-i18next";
 import AddFavorite from "../../utils/readUtils/addFavorite";
 import RecentBooks from "../../utils/readUtils/recordRecent";
 import StorageUtil from "../../utils/serviceUtils/storageUtil";
@@ -13,16 +12,16 @@ import BookUtil from "../../utils/fileUtils/bookUtil";
 import ActionDialog from "../dialogs/actionDialog";
 import { isElectron } from "react-device-detect";
 import toast from "react-hot-toast";
-
+declare var window: any;
 const BookListItem: React.FC<BookItemProps> = (props) => {
   const [isDeleteDialog, setIsDeleteDialog] = useState(false);
   const [isFavorite, setIsFavorite] = useState(
-    AddFavorite.getAllFavorite().includes(props.book.key)
+    AddFavorite.getAllFavorites().includes(props.book.key)
   );
   const [direction, setDirection] = useState("horizontal");
   const [position, setPosition] = useState({ left: 0, top: 0 });
   const [isHover, setIsHover] = useState(false);
-  const history = useHistory();
+  const navigate = useNavigate();
 
   useEffect(() => {
     let filePath = "";
@@ -38,12 +37,12 @@ const BookListItem: React.FC<BookItemProps> = (props) => {
       !filePath
     ) {
       props.handleReadingBook(props.book);
-      BookUtil.RedirectBook(props.book, props.t, history);
+      BookUtil.RedirectBook(props.book,  navigate);
     }
-  }, [props, history]);
+  }, [props, navigate]);
 
   useEffect(() => {
-    setIsFavorite(AddFavorite.getAllFavorite().includes(props.book.key));
+    setIsFavorite(AddFavorite.getAllFavorites().includes(props.book.key));
   }, [props.book.key]);
 
   const handleDeleteBook = () => {
@@ -64,24 +63,24 @@ const BookListItem: React.FC<BookItemProps> = (props) => {
   const handleLoveBook = () => {
     AddFavorite.setFavorite(props.book.key);
     setIsFavorite(true);
-    toast.success(props.t("Addition successful"));
+    toast.success("添加成功");
   };
 
   const handleCancelLoveBook = () => {
     AddFavorite.clear(props.book.key);
     setIsFavorite(false);
     if (
-      Object.keys(AddFavorite.getAllFavorite()).length === 0 &&
+      Object.keys(AddFavorite.getAllFavorites()).length === 0 &&
       props.mode === "favorite"
     ) {
-      history.push("/manager/empty");
+      navigate("/manager/empty")
     }
-    toast.success(props.t("Cancellation successful"));
+    toast.success("取消成功");
   };
 
   const handleRestoreBook = () => {
     AddTrash.clear(props.book.key);
-    toast.success(props.t("Restore successful"));
+    toast.success("恢复成功");
     props.handleFetchBooks();
   };
 
@@ -96,12 +95,12 @@ const BookListItem: React.FC<BookItemProps> = (props) => {
     }
     RecentBooks.setRecent(props.book.key);
     props.handleReadingBook(props.book);
-    BookUtil.RedirectBook(props.book, props.t, history);
+    BookUtil.RedirectBook(props.book, navigate);
   };
 
   const handleExportBook = () => {
     BookUtil.fetchBook(props.book.key, true, props.book.path).then((result) => {
-      toast.success(props.t("Export successful"));
+      toast.success("导出成功");
       window.saveAs(
         new Blob([result]),
         `${props.book.name}.${props.book.format.toLowerCase()}`
@@ -170,8 +169,9 @@ const BookListItem: React.FC<BookItemProps> = (props) => {
               className="lazy-image book-item-image"
               style={{ width: "100%" }}
               onLoad={(res) => {
+                const target = res.target as HTMLImageElement;
                 setDirection(
-                  res.target.naturalHeight / res.target.naturalWidth > 74 / 47
+                  target.naturalHeight / target.naturalWidth > 74 / 47
                     ? "horizontal"
                     : "vertical"
                 );
@@ -218,7 +218,7 @@ const BookListItem: React.FC<BookItemProps> = (props) => {
               : "Done"}
           </p>
           <div className="book-item-list-author">
-            <Trans>{props.book.author || "Unknown author"}</Trans>
+            {props.book.author || "未知"}
           </div>
         </p>
       </div>

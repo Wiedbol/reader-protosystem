@@ -8,7 +8,7 @@ import RecordLocation from '../../utils/readUtils/recordLocation';
 import Background from '../../components/background';
 import toast from 'react-hot-toast';
 import StyleUtil from '../../utils/readUtils/styleUtil';
-import './index.css';
+import './htmlViewer.css';
 import { HtmlMouseEvent } from '../../utils/serviceUtils/mouseEvent';
 import ImageViewer from '../../components/imageViewer';
 import { getIframeDoc } from '../../utils/serviceUtils/docUtil';
@@ -19,7 +19,6 @@ import { renderHighlighters } from '../../utils/serviceUtils/noteUtil';
 import PageWidget from '../../containers/pageWidget';
 import { scrollContents } from '../../utils/commonUtil';
 import { ViewerProps } from './interface';
-import _ from 'lodash';
 
 
 

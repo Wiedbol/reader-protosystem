@@ -10,7 +10,7 @@ import Viewer from '../../containers/htmlViewer';
 import StorageUtil from '../../utils/serviceUtils/storageUtil';
 import ReadingTime from '../../utils/readUtils/readingTime';
 import RecordLocation from '../../utils/readUtils/recordLocation';
-import './index.css';
+import './htmlReader.css';
 declare var window: any;
 interface ReaderProps {
   currentBook: any;
@@ -205,7 +205,7 @@ const Reader: React.FC<ReaderProps> = ({
         onMouseLeave={() => handleLeaveReader('bottom')}
         style={isOpenBottomPanel ? {} : { transform: 'translateY(110px)' }}
       >
-        <ProgressPanel time={time} />
+        <ProgressPanel />
       </div>
       <div
         className="operation-panel-container"

@@ -53,7 +53,7 @@ const ViewMode: React.FC<ViewModeProps> = (props) => {
         >
           <span
             data-tooltip-id="my-tooltip"
-            data-tooltip-content={props.t(item.name)}
+            data-tooltip-content={item.name}
           >
             <span className={`icon-${item.icon}`}></span>
           </span>

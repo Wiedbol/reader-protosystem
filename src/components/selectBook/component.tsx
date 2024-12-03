@@ -2,9 +2,7 @@ import React, { useState } from "react";
 import AddFavorite from "../../utils/readUtils/addFavorite";
 import BookModel from "../../models/Book";
 import "./selectBook.css";
-import { Trans } from "react-i18next";
 import { BookListProps } from "./interface";
-import { withRouter } from "react-router-dom";
 import toast from "react-hot-toast";
 import {
   exportBooks,
@@ -21,7 +19,7 @@ const SelectBook: React.FC<BookListProps> = (props) => {
   const [isOpenDelete, setIsOpenDelete] = useState(false);
   const [isShowExport, setIsShowExport] = useState(false);
   const [favoriteBooks, setFavoriteBooks] = useState(
-    Object.keys(AddFavorite.getAllFavorite()).length
+    Object.keys(AddFavorite.getAllFavorites()).length
   );
 
   const handleFilterShelfBook = (items: BookModel[]) => {
@@ -63,7 +61,7 @@ const SelectBook: React.FC<BookListProps> = (props) => {
             className="book-manage-title"
             style={{ color: "rgb(231, 69, 69)" }}
           >
-            <Trans>Cancel</Trans>
+            取消
           </span>
 
           <span
@@ -78,13 +76,13 @@ const SelectBook: React.FC<BookListProps> = (props) => {
                 if (props.isSelectBook) {
                   props.handleSelectedBooks([]);
                 }
-                toast.success(props.t("Add successful"));
+                toast.success("添加成功");
               } else {
-                toast(props.t("Nothing to add"));
+                toast("请选择书籍");
               }
             }}
           >
-            <Trans>Add to favorite</Trans>
+            添加到收藏
           </span>
 
           <span
@@ -93,7 +91,7 @@ const SelectBook: React.FC<BookListProps> = (props) => {
               props.handleAddDialog(true);
             }}
           >
-            <Trans>Add to shelf</Trans>
+            添加到书架
           </span>
 
           <span
@@ -102,7 +100,7 @@ const SelectBook: React.FC<BookListProps> = (props) => {
               props.handleDeleteDialog(true);
             }}
           >
-            <Trans>Delete</Trans>
+            删除
           </span>
 
           <div className="select-more-actions-container">
@@ -111,7 +109,7 @@ const SelectBook: React.FC<BookListProps> = (props) => {
               onMouseEnter={() => setIsShowExport(true)}
               onMouseLeave={() => setIsShowExport(false)}
             >
-              <Trans>More actions</Trans>
+              更多操作
             </span>
 
             <div
@@ -128,13 +126,13 @@ const SelectBook: React.FC<BookListProps> = (props) => {
                   );
                   if (selectedBooks.length > 0) {
                     await exportBooks(selectedBooks);
-                    toast.success(props.t("Export successful"));
+                    toast.success("导出成功");
                   } else {
-                    toast(props.t("Nothing to export"));
+                    toast("请选择书籍");
                   }
                 }}
               >
-                <Trans>Export books</Trans>
+                导出书籍
               </span>
               {/* Additional Export Options */}
               {/* Similar refactoring can be done for other export actions */}
@@ -156,9 +154,9 @@ const SelectBook: React.FC<BookListProps> = (props) => {
             }}
           >
             {props.selectedBooks.length === handleFilterShelfBook(props.books).length ? (
-              <Trans>Deselect all</Trans>
+              "取消全选"
             ) : (
-              <Trans>Select all</Trans>
+              "全选"
             )}
           </span>
         </>
@@ -167,5 +165,5 @@ const SelectBook: React.FC<BookListProps> = (props) => {
   );
 };
 
-export default withRouter(SelectBook);
+export default SelectBook;
 

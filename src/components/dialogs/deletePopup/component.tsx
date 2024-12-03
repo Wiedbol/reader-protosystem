@@ -6,11 +6,16 @@ export function DeletePopup(props:DeletePopupProps) {
   const handleCancel = () => {
     props.handleDeletePopup(false);
   };
-  const handleConfirm = () => {
-    props.handleDeletePopup(false);
+ const handleConfirm = () => {
+  props.handleDeletePopup(false);
+  if (typeof props.handleDeleteOperation === 'function') {
     props.handleDeleteOperation();
-    toast.success("删除成功")
+    toast.success("删除成功");
+  } else {
+    console.error("handleDeleteOperation is not a function");
   }
+};
+ 
   return (
     <div className="delete-dialog-container">
       <div className="delete-dialog-title">

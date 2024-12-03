@@ -3,7 +3,7 @@ import HtmlBookModel from "../../models/HtmlBook";
 export interface ReaderProps {
   currentBook: BookModel;
   percentage: number;
-  htmlBook: HtmlBookModel | null;
+  htmlBook: HtmlBookModel;
   handleFetchNotes: () => void;
   handleFetchBooks: () => void;
   handleFetchBookmarks: () => void;

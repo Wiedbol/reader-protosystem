@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from "react";
 import ShelfUtil from "../../utils/readUtils/shelfUtil";
-import { Trans } from "react-i18next";
 import { ShelfSelectorProps } from "./interface";
 import DeletePopup from "../dialogs/deletePopup";
-import { withRouter } from "react-router-dom";
 import { backup } from "../../utils/syncUtils/backupUtil";
 import { isElectron } from "react-device-detect";
 declare var window: any;
@@ -26,8 +24,8 @@ const ShelfSelector: React.FC<ShelfSelectorProps> = (props) => {
   const handleShelfItem = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const index = event.target.value.split(",")[1];
     setShelfIndex(Number(index));
-    props.handleShelfIndex(index);
-    if (index > 0) {
+    props.handleShelfIndex(Number(index));
+    if (Number(index) > 0) {
       props.handleMode("shelf");
     } else {
       props.handleMode("home");
@@ -59,7 +57,7 @@ const ShelfSelector: React.FC<ShelfSelectorProps> = (props) => {
         className="add-dialog-shelf-list-option"
         selected={props.shelfIndex === index}
       >
-        {props.t(item === "New" ? "Books" : item)}
+        {item === "New" ? "Books" : item}
       </option>
     ));
   };
@@ -78,7 +76,7 @@ const ShelfSelector: React.FC<ShelfSelectorProps> = (props) => {
       {isOpenDelete && <DeletePopup {...deletePopupProps} />}
       <div className="booklist-shelf-container">
         <p className="general-setting-title" style={{ float: "left", height: "100%" }}>
-          <Trans>Shelf</Trans>
+        书架
         </p>
         <select
           className="booklist-shelf-list"
@@ -97,5 +95,5 @@ const ShelfSelector: React.FC<ShelfSelectorProps> = (props) => {
   );
 };
 
-export default withRouter(ShelfSelector);
+export default ShelfSelector;
 

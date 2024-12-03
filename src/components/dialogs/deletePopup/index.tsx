@@ -6,9 +6,9 @@ import { AppDispatch } from '../../../store';
 
 interface DeletePopupProps {
   handleDeletePopup: (isOpen: boolean) => void;
-  handleDeleteOperation: () => void;
+  handleDeleteOperation?: () => void;
   title: string;
-  name: string;
+  name?: string;
   description: string;
 }
 

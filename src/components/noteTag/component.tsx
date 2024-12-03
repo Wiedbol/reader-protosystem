@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import "./noteTag.css";
-import { NoteTagProps } from "./interface";
+
 import TagUtil from "../../utils/readUtils/tagUtil";
 import DeleteIcon from "../deleteIcon";
-import { Trans } from "react-i18next";
+import { NoteTagProps } from "./interface";
 
 const NoteTag: React.FC<NoteTagProps> = (props) => {
   const [tagIndex, setTagIndex] = useState<number[]>([]);
@@ -82,7 +82,7 @@ const NoteTag: React.FC<NoteTagProps> = (props) => {
           )}
         </div>
         <div className="center" onClick={() => handleChangeTag(index)}>
-          <Trans>{item}</Trans>
+          {item}
         </div>
       </li>
     ));
@@ -92,7 +92,7 @@ const NoteTag: React.FC<NoteTagProps> = (props) => {
     <div className="note-tag-container" style={props.isReading ? { width: "1999px" } : {}}>
       {(!props.isReading && !props.isCard) && (
         <div className="tag-title">
-          <Trans>All tags</Trans>
+        全部标签
           <div className="note-tag-show-icon" style={!isShowTags ? { transform: "rotate(-90deg)" } : {}}>
             <span
               className="icon-dropdown tag-dropdown-icon"

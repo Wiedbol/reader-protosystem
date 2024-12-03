@@ -45,7 +45,7 @@ const ImageViewer: React.FC<ImageViewerProps> = (props) => {
 
     const img = new Image();
     img.onload = function () {
-      setImageRatio(this.naturalWidth / this.naturalHeight > 1 ? "horizontal" : "vertical");
+      setImageRatio(img.naturalWidth / img.naturalHeight > 1 ? "horizontal" : "vertical");
     };
     img.src = target.src;
 

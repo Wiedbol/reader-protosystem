@@ -10,7 +10,7 @@ export interface ViewerProps {
   menuMode: string;
   notes: Note[];
   isReading: boolean;
-  htmlBook: HtmlBook | null;
+  htmlBook: HtmlBook;
   isShow: boolean;
   isOpenMenu: boolean;
   handleRenderBookFunc: (renderBookFunc: () => void) => void;

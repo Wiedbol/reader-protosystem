@@ -1,15 +1,17 @@
 import React, { useState } from "react";
 import "./style.css";
-import { withRouter } from "react-router-dom";
 import { stateType } from "../../store";
 import { connect } from "react-redux";
-import { handleReadingState } from "../../store/actions";
+import { handleReadingState } from "../../store/slices";
 import { isElectron } from "react-device-detect";
 import StorageUtil from "../../utils/serviceUtils/storageUtil";
 import { PDFWidgetProps } from "./interface";
+import { useNavigate } from "react-router";
 
 const PDFWidget: React.FC<PDFWidgetProps> = (props) => {
   const [isHover, setIsHover] = useState(false);
+
+  const navigate = useNavigate()
 
   const handleHomeClick = () => {
     if (isElectron && StorageUtil.getReaderConfig("isOpenInMain") !== "yes") {
@@ -22,7 +24,7 @@ const PDFWidget: React.FC<PDFWidgetProps> = (props) => {
         window.close();
       }
     } else {
-      props.history.push("/manager/home");
+      navigate("/manager/home")
       document.title = "Koodo Reader";
       props.handleReadingState(false);
     }
@@ -81,5 +83,5 @@ const PDFWidget: React.FC<PDFWidgetProps> = (props) => {
 const mapStateToProps = (state: stateType) => ({});
 const actionCreator = { handleReadingState };
 
-export default connect(mapStateToProps, actionCreator)(withRouter(PDFWidget));
+export default connect(mapStateToProps, actionCreator)(PDFWidget);
 
