@@ -1,37 +1,20 @@
-import React from 'react'
-import { useDispatch, useSelector } from "react-redux"
-import { AppDispatch, RootState } from "../../../store"
-import { handleShowBookmark } from "../../../store/slices";
-import { NavListProps } from "./interface";
-import NavList from './component';
-
-interface NavListContainerProps {
-  currentTab: string;
-}
-
-const NavListContainer: React.FC<NavListContainerProps> = ({
-  currentTab
-}) => {
-  const dispatch = useDispatch<AppDispatch>();
-  const state = useSelector((state: RootState) => ({
+import { connect } from "react-redux";
+import { stateType } from "../../../store";
+import { withTranslation } from "react-i18next";
+import { handleShowBookmark } from "../../../store/actions";
+import NavList from "./component";
+const mapStateToProps = (state: stateType) => {
+  return {
     currentBook: state.book.currentBook,
     htmlBook: state.reader.htmlBook,
 
     bookmarks: state.reader.bookmarks,
     notes: state.reader.notes,
     digests: state.reader.digests,
-  }))
-
-  const actionCreator = {
-    handleShowBookmark: (isShow: boolean) => dispatch(handleShowBookmark(isShow))
-  }
-  const props: NavListProps = {
-    ...state,
-    ...actionCreator,
-    currentTab,
-
-  }
-  return <NavList {...props} />
-}
-
-export default NavListContainer;
+  };
+};
+const actionCreator = { handleShowBookmark };
+export default connect(
+  mapStateToProps,
+  actionCreator
+)(withTranslation()(NavList as any) as any);

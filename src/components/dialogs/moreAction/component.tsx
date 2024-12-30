@@ -1,162 +1,203 @@
-import React from 'react';
-import toast from 'react-hot-toast';
-import BookUtil from '../../../utils/fileUtils/bookUtil';
+import React from "react";
+import "./moreAction.css";
+import { Trans } from "react-i18next";
+import { MoreActionProps, MoreActionState } from "./interface";
+
+import toast from "react-hot-toast";
+import BookUtil from "../../../utils/fileUtils/bookUtil";
 import {
   exportDictionaryHistory,
   exportHighlights,
   exportNotes,
-} from '../../../utils/syncUtils/exportUtil';
-import StorageUtil from '../../../utils/serviceUtils/storageUtil';
-import './moreAction.css';
-import { MoreActionProps } from './interface';
+} from "../../../utils/syncUtils/exportUtil";
+import StorageUtil from "../../../utils/serviceUtils/storageUtil";
 declare var window: any;
-
-const MoreActionDialog: React.FC<MoreActionProps> = ({
-  isShowExport,
-  isExceed,
-  left,
-  top,
-  currentBook,
-  notes,
-  books,
-  deletedBooks,
-  handleMoreAction,
-  handleActionDialog,
-}) => {
-
-  const handleExportBook = async () => {
-    try {
-      const result = await BookUtil.fetchBook(currentBook.key, true, currentBook.path);
-      toast.success('导出成功');
-      window.saveAs(
-        new Blob([result]),
-        `${currentBook.name}.${currentBook.format.toLowerCase()}`
-      );
-    } catch (error) {
-      console.error('Error exporting book:', error);
-      toast.error('导出失败');
-    }
-  };
-
-  const handleExportNotes = () => {
-    const bookNotes = notes.filter(
-      (item) => item.bookKey === currentBook.key && item.notes !== ''
-    );
-    if (bookNotes.length > 0) {
-      exportNotes(bookNotes, [...books, ...deletedBooks]);
-      toast.success('导出成功');
-    } else {
-      toast('导出数据为空');
-    }
-  };
-
-  const handleExportHighlights = () => {
-    const bookHighlights = notes.filter(
-      (item) => item.bookKey === currentBook.key && item.notes === ''
-    );
-    if (bookHighlights.length > 0) {
-      exportHighlights(bookHighlights, [...books, ...deletedBooks]);
-      toast.success('导出成功');
-    } else {
-      toast('导出数据为空');
-    }
-  };
-
-  const handleExportDictionaryHistory = async () => {
-    const dictHistory = (await window.localforage.getItem('words')) || [];
-    const bookDictHistory = dictHistory.filter(
-      (item) => item.bookKey === currentBook.key
-    );
-    if (bookDictHistory.length > 0) {
-      exportDictionaryHistory(dictHistory, [...books, ...deletedBooks]);
-      toast.success('导出成功');
-    } else {
-      toast('导出数据为空');
-    }
-  };
-
-  const handlePreCache = async () => {
-    if (currentBook.format === 'PDF') {
-      toast('尚不支持');
-      return;
-    }
-    toast('预缓存中');
-    try {
-      const result = await BookUtil.fetchBook(currentBook.key, true, currentBook.path);
-      const rendition = BookUtil.getRendtion(
-        result,
-        currentBook.format,
-        '',
-        currentBook.charset,
-        StorageUtil.getReaderConfig('isSliding') === 'yes' ? 'sliding' : ''
-      );
-      const cache = await rendition.preCache(result);
-      if (cache !== 'err') {
-        BookUtil.addBook(`cache-${currentBook.key}`, cache);
-        toast.success('预缓存成功');
-      } else {
-        toast.error('预缓存失败');
-      }
-    } catch (error) {
-      console.error('Error pre-caching:', error);
-      toast.error('预缓存失败');
-    }
-  };
-
-  const handleDeletePreCache = async () => {
-    try {
-      await BookUtil.deleteBook(`cache-${currentBook.key}`);
-      toast.success('删除成功');
-    } catch (error) {
-      console.error('Error deleting pre-cache:', error);
-      toast.error('删除失败');
-    }
-  };
-
-  if (!isShowExport) {
-    return null;
+class ActionDialog extends React.Component<MoreActionProps, MoreActionState> {
+  constructor(props: MoreActionProps) {
+    super(props);
+    this.state = {};
   }
-
-  return (
-    <div
-      className="action-dialog-container"
-      onMouseLeave={() => {
-        handleMoreAction(false);
-        handleActionDialog(false);
-      }}
-      onMouseEnter={(event) => {
-        handleMoreAction(true);
-        handleActionDialog(true);
-        event?.stopPropagation();
-      }}
-      style={{
-        position: 'fixed',
-        left: left + (isExceed ? -195 : 195),
-        top: top + 70,
-      }}
-    >
-      <div className="action-dialog-actions-container">
-        <div className="action-dialog-edit" style={{ paddingLeft: '0px' }} onClick={handleExportBook}>
-          <p className="action-name">{'导出书籍'}</p>
-        </div>
-        <div className="action-dialog-edit" style={{ paddingLeft: '0px' }} onClick={handleExportNotes}>
-          <p className="action-name">{'导出笔记'}</p>
-        </div>
-        <div className="action-dialog-edit" style={{ paddingLeft: '0px' }} onClick={handleExportHighlights}>
-          <p className="action-name">{'导出高亮'}</p>
-        </div>
-        <div className="action-dialog-edit" style={{ paddingLeft: '0px' }} onClick={handleExportDictionaryHistory}>
-          <p className="action-name">{'导出所有查词历史'}</p>
-        </div>
-        <div className="action-dialog-edit" style={{ paddingLeft: '0px' }} onClick={handlePreCache}>
-          <p className="action-name">{'预缓存'}</p>
-        </div>
-        <div className="action-dialog-edit" style={{ paddingLeft: '0px' }} onClick={handleDeletePreCache}>
-          <p className="action-name">{'删除预缓存'}</p>
+  render() {
+    return (
+      <div
+        className="action-dialog-container"
+        onMouseLeave={() => {
+          this.props.handleMoreAction(false);
+          this.props.handleActionDialog(false);
+        }}
+        onMouseEnter={(event) => {
+          this.props.handleMoreAction(true);
+          this.props.handleActionDialog(true);
+          event?.stopPropagation();
+        }}
+        style={
+          this.props.isShowExport
+            ? {
+                position: "fixed",
+                left: this.props.left + (this.props.isExceed ? -195 : 195),
+                top: this.props.top + 110,
+              }
+            : { display: "none" }
+        }
+      >
+        <div className="action-dialog-actions-container">
+          <div
+            className="action-dialog-edit"
+            style={{ paddingLeft: "0px" }}
+            onClick={() => {
+              BookUtil.fetchBook(
+                this.props.currentBook.key,
+                true,
+                this.props.currentBook.path
+              ).then((result: any) => {
+                toast.success(this.props.t("Export successful"));
+                window.saveAs(
+                  new Blob([result]),
+                  this.props.currentBook.name +
+                    `.${this.props.currentBook.format.toLocaleLowerCase()}`
+                );
+              });
+            }}
+          >
+            <p className="action-name">
+              <Trans>Export books</Trans>
+            </p>
+          </div>
+          <div
+            className="action-dialog-edit"
+            style={{ paddingLeft: "0px" }}
+            onClick={() => {
+              if (
+                this.props.notes.filter(
+                  (item) =>
+                    item.bookKey === this.props.currentBook.key &&
+                    item.notes !== ""
+                ).length > 0
+              ) {
+                exportNotes(
+                  this.props.notes.filter(
+                    (item) => item.bookKey === this.props.currentBook.key
+                  ),
+                  [...this.props.books, ...this.props.deletedBooks]
+                );
+                toast.success(this.props.t("Export successful"));
+              } else {
+                toast(this.props.t("Nothing to export"));
+              }
+            }}
+          >
+            <p className="action-name">
+              <Trans>Export notes</Trans>
+            </p>
+          </div>
+          <div
+            className="action-dialog-edit"
+            style={{ paddingLeft: "0px" }}
+            onClick={() => {
+              if (
+                this.props.notes.filter(
+                  (item) =>
+                    item.bookKey === this.props.currentBook.key &&
+                    item.notes === ""
+                ).length > 0
+              ) {
+                exportHighlights(
+                  this.props.notes.filter(
+                    (item) => item.bookKey === this.props.currentBook.key
+                  ),
+                  [...this.props.books, ...this.props.deletedBooks]
+                );
+                toast.success(this.props.t("Export successful"));
+              } else {
+                toast(this.props.t("Nothing to export"));
+              }
+            }}
+          >
+            <p className="action-name">
+              <Trans>Export highlights</Trans>
+            </p>
+          </div>
+          {/* <div
+            className="action-dialog-edit"
+            style={{ paddingLeft: "0px" }}
+            onClick={async () => {
+              let dictHistory =
+                (await window.localforage.getItem("words")) || [];
+              if (
+                dictHistory.filter(
+                  (item) => item.bookKey === this.props.currentBook.key
+                ).length > 0
+              ) {
+                exportDictionaryHistory(dictHistory, [
+                  ...this.props.books,
+                  ...this.props.deletedBooks,
+                ]);
+                toast.success(this.props.t("Export successful"));
+              } else {
+                toast(this.props.t("Nothing to export"));
+              }
+            }}
+          >
+            <p className="action-name">
+              <Trans>Export dictionary history</Trans>
+            </p>
+          </div> */}
+          {/* <div
+            className="action-dialog-edit"
+            style={{ paddingLeft: "0px" }}
+            onClick={() => {
+              if (this.props.currentBook.format === "PDF") {
+                toast(this.props.t("Not supported yet"));
+                return;
+              }
+              toast(this.props.t("Pre-caching"));
+              BookUtil.fetchBook(
+                this.props.currentBook.key,
+                true,
+                this.props.currentBook.path
+              ).then(async (result: any) => {
+                let rendition = BookUtil.getRendtion(
+                  result,
+                  this.props.currentBook.format,
+                  "",
+                  this.props.currentBook.charset,
+                  StorageUtil.getReaderConfig("isSliding") === "yes"
+                    ? "sliding"
+                    : ""
+                );
+                let cache = await rendition.preCache(result);
+                if (cache !== "err") {
+                  BookUtil.addBook(
+                    "cache-" + this.props.currentBook.key,
+                    cache
+                  );
+                  toast.success(this.props.t("Pre-caching successful"));
+                } else {
+                  toast.error(this.props.t("Pre-caching failed"));
+                }
+              });
+            }}
+          >
+            <p className="action-name">
+              <Trans>Pre-cache</Trans>
+            </p>
+          </div>
+          <div
+            className="action-dialog-edit"
+            style={{ paddingLeft: "0px" }}
+            onClick={async () => {
+              await BookUtil.deleteBook("cache-" + this.props.currentBook.key);
+              toast.success(this.props.t("Deletion successful"));
+            }}
+          >
+            <p className="action-name">
+              <Trans>Delete pre-cache</Trans>
+            </p>
+          </div> */}
         </div>
       </div>
-    </div>
-  );
-};
+    );
+  }
+}
 
-export default MoreActionDialog;
+export default ActionDialog;

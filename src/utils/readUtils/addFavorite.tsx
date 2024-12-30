@@ -1,5 +1,4 @@
-import BookModel from "../../models/Book"
-//todo:添加用户后可以分用户添加收藏夹
+import BookModel from "../../models/Book";
 class AddFavorite {
   static setFavorite(bookKey: string) {
     let bookArr =
@@ -14,6 +13,7 @@ class AddFavorite {
     } else {
       bookArr.unshift(bookKey);
     }
+
     localStorage.setItem("favoriteBooks", JSON.stringify(bookArr));
   }
   static setFavorites(books: BookModel[]) {
@@ -23,10 +23,10 @@ class AddFavorite {
         ? JSON.parse(localStorage.getItem("favoriteBooks") || "")
         : [];
     let bookKeys = books.map((item) => item.key);
-    bookArr = [...new Set([...bookArr,...bookKeys])];
+    bookArr = [...new Set([...bookArr, ...bookKeys])];
     localStorage.setItem("favoriteBooks", JSON.stringify(bookArr));
   }
-  static setAllFavorites(books: BookModel[]) {
+  static setAllFavorite(books: BookModel[]) {
     let bookArr: string[] = [];
     books.forEach((item) => {
       bookArr.push(item.key);
@@ -45,7 +45,7 @@ class AddFavorite {
     }
     localStorage.setItem("favoriteBooks", JSON.stringify(bookArr));
   }
-  static getAllFavorites() {
+  static getAllFavorite() {
     let bookArr =
       localStorage.getItem("favoriteBooks") !== "{}" &&
       localStorage.getItem("favoriteBooks")

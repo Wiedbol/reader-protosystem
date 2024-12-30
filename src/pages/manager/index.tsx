@@ -1,13 +1,32 @@
-import { useDispatch, useSelector } from "react-redux";
-import { AppDispatch, RootState } from "../../store";
-import { fetchBookmarks, fetchBooks, fetchBookSortCode, fetchNotes, fetchNoteSortCode, fetchViewMode, handleAddDialog, handleBackupDialog, handleDeleteDialog, handleDetailDialog, handleEditDialog, handleFeedbackDialog, handleLoadingDialog, handleNewDialog, handleReadingState, handleSetting, handleTip, handleTipDialog } from "../../store/slices";
-import { Manager } from "./component";
-import React from "react";
+import { connect } from "react-redux";
+import {
+  handleFetchBooks,
+  handleFetchBookSortCode,
+  handleFetchNoteSortCode,
+  handleFetchList,
+  handleTipDialog,
+  handleDetailDialog,
+  handleLoadingDialog,
+  handleNewDialog,
+  handleFeedbackDialog,
+  handleSetting,
+  handleBackupDialog,
+  handleFetchNotes,
+  handleFetchBookmarks,
+  handleEditDialog,
+  handleDeleteDialog,
+  handleAddDialog,
+  handleReadingState,
+} from "../../store/actions";
+import { withTranslation } from "react-i18next";
 
-const ManagerContainer: React.FC = () => {
-	const dispatch = useDispatch<AppDispatch>();
-	const state = useSelector((state: RootState) => ({
-		books: state.manager.books,
+import "./manager.css";
+import { stateType } from "../../store";
+import Manager from "./component";
+import { withRouter } from "react-router-dom";
+const mapStateToProps = (state: stateType) => {
+  return {
+    books: state.manager.books,
     notes: state.reader.notes,
     digests: state.reader.digests,
     bookmarks: state.reader.bookmarks,
@@ -20,7 +39,7 @@ const ManagerContainer: React.FC = () => {
     isOpenDeleteDialog: state.book.isOpenDeleteDialog,
     isOpenAddDialog: state.book.isOpenAddDialog,
     isSettingOpen: state.manager.isSettingOpen,
-    isOpenFeedbackDialog: state.manager.isFeedbackDialogOpen,
+    isOpenFeedbackDialog: state.manager.isOpenFeedbackDialog,
     isAboutOpen: state.manager.isAboutOpen,
     isBookSort: state.manager.isBookSort,
     isSortDisplay: state.manager.isSortDisplay,
@@ -29,33 +48,29 @@ const ManagerContainer: React.FC = () => {
     isTipDialog: state.manager.isTipDialog,
     DetailDialog: state.manager.isDetailDialog,
     isBackup: state.backupPage.isBackup,
-	}))
-	const actionCreator = {
-		handleFetchBooks: () => dispatch(fetchBooks()),
-		handleFetchNotes: () => dispatch(fetchNotes()),
-    handleSetting: (payload: boolean) => dispatch(handleSetting(payload)),
-    handleFetchBookmarks: () => dispatch(fetchBookmarks()),
-    handleFetchBookSortCode: () => dispatch(fetchBookSortCode()),
-    handleFetchNoteSortCode: () => dispatch(fetchNoteSortCode()),
-    handleFetchViewMode: () => dispatch(fetchViewMode()),
-    handleEditDialog: (payload: boolean) => dispatch(handleSetting(payload)),
-    handleDeleteDialog: (payload: boolean) => dispatch(handleSetting(payload)),
-    handleAddDialog: (payload: boolean) => dispatch(handleSetting(payload)),
-    handleFeedbackDialog: (payload: boolean) => dispatch(handleSetting(payload)),
-    handleTipDialog: (payload: boolean) => dispatch(handleSetting(payload)),
-    handleDetailDialog: (payload: boolean) => dispatch(handleSetting(payload)),
-    handleLoadingDialog: (payload: boolean) => dispatch(handleSetting(payload)),
-    handleNewDialog: (payload: boolean) => dispatch(handleSetting(payload)),
-    handleBackupDialog: (payload: boolean) => dispatch(handleSetting(payload)),
-    handleReadingState: (payload: boolean) => dispatch(handleReadingState(payload)),
-	}
-
-  return (
-    <Manager
-      {...state}
-      {...actionCreator}
-    />
-  )
-}
-
-export default ManagerContainer;
+    isAdmin: state.user.isAdmin,
+  };
+};
+const actionCreator = {
+  handleFetchBooks,
+  handleFetchNotes,
+  handleSetting,
+  handleFetchBookmarks,
+  handleFetchBookSortCode,
+  handleFetchNoteSortCode,
+  handleFetchList,
+  handleEditDialog,
+  handleDeleteDialog,
+  handleAddDialog,
+  handleFeedbackDialog,
+  handleTipDialog,
+  handleDetailDialog,
+  handleLoadingDialog,
+  handleNewDialog,
+  handleBackupDialog,
+  handleReadingState,
+};
+export default connect(
+  mapStateToProps,
+  actionCreator
+)(withTranslation()(withRouter(Manager as any) as any) as any);

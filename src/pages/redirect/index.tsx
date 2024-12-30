@@ -1,17 +1,14 @@
-import React from 'react'
-import { useDispatch } from 'react-redux'
-import { AppDispatch } from '../../store'
-import { handleLoadingDialog } from '../../store/slices';
-import { RedirectProps } from './interface';
-import Redirect from './component';
-const RedirectContainer: React.FC = () => {
-  const dispatch = useDispatch<AppDispatch>();
-  const actionCreator = {
-    handleLoadingDialog: (payload: boolean) => handleLoadingDialog(payload)
-  }
-  const props: RedirectProps = {
-    ...actionCreator
-  }
-  return <Redirect {...props} />
-}
-export default RedirectContainer;
+import { connect } from "react-redux";
+import "./manager.css";
+import { stateType } from "../../store";
+import { handleLoadingDialog } from "../../store/actions";
+import Redirect from "./component";
+import { withTranslation } from "react-i18next";
+const mapStateToProps = (state: stateType) => {
+  return {};
+};
+const actionCreator = { handleLoadingDialog };
+export default connect(
+  mapStateToProps,
+  actionCreator
+)(withTranslation()(Redirect as any) as any);

@@ -1,15 +1,15 @@
-import React from 'react'
-import { useSelector } from 'react-redux'
-import { RootState } from '../../../store'
-import { ThemeListProps } from './interface'
-import ThemeList from './component'
-const ThemeListContainer: React.FC = () => {
-  const state = useSelector((state: RootState) => ({
+import { connect } from "react-redux";
+import { withTranslation } from "react-i18next";
+import ThemeList from "./component";
+import { stateType } from "../../../store";
+
+const mapStateToProps = (state: stateType) => {
+  return {
     renderBookFunc: state.book.renderBookFunc,
-  }))
-  const props: ThemeListProps = {
-    ...state,
-  }
-  return <ThemeList {...props} />
-}
-export default ThemeListContainer;
+  };
+};
+const actionCreator = {};
+export default connect(
+  mapStateToProps,
+  actionCreator
+)(withTranslation()(ThemeList as any) as any);

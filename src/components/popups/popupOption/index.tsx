@@ -1,58 +1,35 @@
-import { useDispatch, useSelector } from "react-redux"
-import { AppDispatch, RootState } from "../../../store"
-import { fetchNotes, handleChangeDirection, handleMenuMode, handleNoteKey, handleOpenMenu, handleOriginalText } from "../../../store/slices";
-import { PopupOptionProps } from "./interface";
-import HtmlBook from "../../../models/HtmlBook";
-import NoteModel from "../../../models/Note"
+import { connect } from "react-redux";
+import {
+  handleOpenMenu,
+  handleMenuMode,
+  handleChangeDirection,
+} from "../../../store/actions";
+import {
+  handleFetchNotes,
+  handleOriginalText,
+  handleNoteKey,
+} from "../../../store/actions";
+import { stateType } from "../../../store";
+import { withTranslation } from "react-i18next";
 import PopupOption from "./component";
-import React from "react";
-
-interface PopupOptionContainerProps {
-  chapterDocIndex: number;
-  chapter: string;
-  rect: DOMRect;
-  // cfiRange: string;
-  // htmlBook: HtmlBook;
-  // digests: NoteModel[];
-  // noteKey: string;
-}
-
-const PopupOptionContainer: React.FC<PopupOptionContainerProps> = ({
-  chapterDocIndex,
-  chapter,
-  rect,
-  // cfiRange,
-  // htmlBook,
-  // digests,
-  // noteKey,
-}) => {
-  const dispatch = useDispatch<AppDispatch>();
-  const state = useSelector((state: RootState) => ({
+const mapStateToProps = (state: stateType) => {
+  return {
     currentBook: state.book.currentBook,
     selection: state.viewArea.selection,
     notes: state.reader.notes,
     color: state.reader.color,
     htmlBook: state.reader.htmlBook,
-  }))
-  const actionCreator = {
-    handleOpenMenu: (payload: boolean) => dispatch(handleOpenMenu(payload)),
-    handleMenuMode: (payload: string) => dispatch(handleMenuMode(payload)),
-    handleFetchNotes: () => dispatch(fetchNotes()),
-    handleOriginalText: (payload: string) => dispatch(handleOriginalText(payload)),
-    handleChangeDirection: (payload: boolean) => dispatch(handleChangeDirection(payload)),
-    handleNoteKey: (payload: string) => dispatch(handleNoteKey(payload)),
-  }
-  const props: PopupOptionProps = {
-    ...state,
-    ...actionCreator,
-    rect,
-    chapterDocIndex,
-    chapter,
-    // cfiRange,
-    // htmlBook,
-    // digests,
-    // noteKey,
-  }
-  return <PopupOption {...props} />
-}
-export default PopupOptionContainer;
+  };
+};
+const actionCreator = {
+  handleOpenMenu,
+  handleMenuMode,
+  handleFetchNotes,
+  handleOriginalText,
+  handleChangeDirection,
+  handleNoteKey,
+};
+export default connect(
+  mapStateToProps,
+  actionCreator
+)(withTranslation()(PopupOption as any) as any);

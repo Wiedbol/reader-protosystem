@@ -22,4 +22,3 @@ class Bookmark {
 }
 
 export default Bookmark;
-

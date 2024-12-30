@@ -1,12 +1,15 @@
-import React from 'react';
-import { useSelector } from 'react-redux';
-import { RootState } from '../../../store';
-import ModeControl from './component';
+import { connect } from "react-redux";
+import { withTranslation } from "react-i18next";
+import ModeControl from "./component";
+import { stateType } from "../../../store";
 
-const ModeControlContainer: React.FC = () => {
-  const state = useSelector((state: RootState) => ({
+const mapStateToProps = (state: stateType) => {
+  return {
     renderBookFunc: state.book.renderBookFunc,
-  }))
-  return <ModeControl renderBookFunc={state.renderBookFunc} />
-}
-export default ModeControlContainer;
+  };
+};
+const actionCreator = {};
+export default connect(
+  mapStateToProps,
+  actionCreator
+)(withTranslation()(ModeControl as any) as any);

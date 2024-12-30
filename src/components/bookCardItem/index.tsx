@@ -1,46 +1,37 @@
-import { useDispatch, useSelector } from "react-redux"
-import { AppDispatch, RootState } from "../../store"
-import { handleActionDialog, handleDeleteDialog, handleDragItem, handleReadingBook, handleSelectBook, handleSelectedBooks } from "../../store/slices";
-import bookModel from "../../models/Book";
-import { isAction } from "@reduxjs/toolkit";
-import { BookCardProps } from "./interface";
-import React from "react";
+import { connect } from "react-redux";
+import {
+  handleActionDialog,
+  handleReadingBook,
+  handleDragItem,
+  handleDeleteDialog,
+  handleSelectBook,
+  handleSelectedBooks,
+} from "../../store/actions";
+import { withTranslation } from "react-i18next";
 import BookCardItem from "./component";
+import { stateType } from "../../store";
 
-interface BookCardItemContainerProps {
-  book: bookModel;
-  isSelected: boolean;
-}
-
-
-const BookCardItemContainer: React.FC<BookCardItemContainerProps> = ({
-  book,
-  isSelected,
-}) => {
-  const dispatch = useDispatch<AppDispatch>();
-  const state = useSelector((state: RootState) => ({
+const mapStateToProps = (state: stateType) => {
+  return {
     mode: state.sidebar.mode,
+
     isOpenActionDialog: state.book.isOpenActionDialog,
     dragItem: state.book.dragItem,
     currentBook: state.book.currentBook,
     isSelectBook: state.manager.isSelectBook,
     selectedBooks: state.manager.selectedBooks,
-  }))
-  const actionCreator = {
-    handleReadingBook: (book: bookModel) => dispatch(handleReadingBook(book)),
-    handleActionDialog: (isActionDialogOpen: boolean) => dispatch(handleActionDialog(isActionDialogOpen)),
-    handleDragItem: (item: string) => dispatch(handleDragItem(item)),
-    handleSelectBook: (isSelectBook: boolean) => dispatch(handleSelectBook(isSelectBook)),
-    handleDeleteDialog: (isDeleteDialogOpen: boolean) => dispatch(handleDeleteDialog(isDeleteDialogOpen)),
-    handleSelectedBooks: (selectedBooks: string[]) => dispatch(handleSelectedBooks(selectedBooks)),
-  }
-  const props: BookCardProps = {
-    ...state,
-    ...actionCreator,
-    book,
-    isSelected,
-  }
-  return <BookCardItem {...props} />
-}
-
-export default BookCardItemContainer;
+    isAdmin: state.user.isAdmin,
+  };
+};
+const actionCreator = {
+  handleReadingBook,
+  handleActionDialog,
+  handleDragItem,
+  handleSelectBook,
+  handleDeleteDialog,
+  handleSelectedBooks,
+};
+export default connect(
+  mapStateToProps,
+  actionCreator
+)(withTranslation()(BookCardItem as any) as any);

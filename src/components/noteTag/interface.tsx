@@ -5,3 +5,10 @@ export interface NoteTagProps {
   tag: string[];
   handleTag: (tag: string[]) => void;
 }
+export interface NoteTagState {
+  tagIndex: number[];
+  isInput: boolean;
+  isShowTags: boolean;
+  isEntered: boolean;
+  deleteIndex: number;
+}

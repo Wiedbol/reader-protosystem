@@ -1,41 +1,15 @@
-import { useSelector } from "react-redux";
-import { RootState } from "../../../store";
-import { SliderListProps } from "./interface";
+import { connect } from "react-redux";
+import { withTranslation } from "react-i18next";
 import SliderList from "./component";
-import React from "react";
+import { stateType } from "../../../store";
 
-interface SliderListContainerProps {
-  maxValue: number;
-  minValue: number;
-  mode: string;
-  step: number;
-  title: string;
-  minLabel: string;
-  maxLabel: string;
-}
-
-const SliderListContainer: React.FC<SliderListContainerProps> = ({
-  maxValue,
-  minValue,
-  mode,
-  step,
-  title,
-  minLabel,
-  maxLabel,
-}) => {
-  const state = useSelector((state: RootState) => ({
+const mapStateToProps = (state: stateType) => {
+  return {
     renderBookFunc: state.book.renderBookFunc,
-  }))
-  const props: SliderListProps = {
-    ...state,
-    maxValue,
-    minValue,
-    mode,
-    step,
-    title,
-    minLabel,
-    maxLabel,
-  }
-  return <SliderList {...props} />
-}
-export default SliderListContainer;
+  };
+};
+const actionCreator = {};
+export default connect(
+  mapStateToProps,
+  actionCreator
+)(withTranslation()(SliderList as any) as any);

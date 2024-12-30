@@ -1,27 +1,19 @@
-import React from 'react'
-import { useDispatch, useSelector } from "react-redux"
-import { AppDispatch, RootState } from "../../../store"
-import { handleMenuMode, handleOpenMenu } from "../../../store/slices"
-import { PopupDictProps } from "./interface"
-import PopupDict from './component'
-
-interface PopupDictContainerProps {
-
-}
-const PopupDictContainer: React.FC<PopupDictContainerProps> = ({}) => {
-  const dispatch = useDispatch<AppDispatch>()
-  const state = useSelector((state: RootState) => ({
+import { connect } from "react-redux";
+import { handleOpenMenu, handleMenuMode } from "../../../store/actions";
+import { stateType } from "../../../store";
+import { withTranslation } from "react-i18next";
+import PopupTrans from "./component";
+const mapStateToProps = (state: stateType) => {
+  return {
     originalText: state.reader.originalText,
     currentBook: state.book.currentBook,
-  }))
-  const actionCreator = {
-    handleOpenMenu: (menu: boolean) => handleOpenMenu(menu),
-    handleMenuMode: (mode: string) => handleMenuMode(mode),
-  }
-  const props: PopupDictProps = {
-    ...state,
-    ...actionCreator,
-  }
-  return <PopupDict {...props} />
-}
-export default PopupDictContainer;
+  };
+};
+const actionCreator = {
+  handleOpenMenu,
+  handleMenuMode,
+};
+export default connect(
+  mapStateToProps,
+  actionCreator
+)(withTranslation()(PopupTrans as any) as any);

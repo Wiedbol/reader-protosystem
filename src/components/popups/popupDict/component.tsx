@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import "./popupDict.css";
-import { PopupDictProps } from "./interface";
+import { PopupDictProps, PopupDictState } from "./interface";
 import PluginList from "../../../utils/readUtils/pluginList";
 import Plugin from "../../../models/Plugin";
 import StorageUtil from "../../../utils/serviceUtils/storageUtil";
@@ -9,47 +9,52 @@ import * as DOMPurify from "dompurify";
 import axios from "axios";
 import RecordLocation from "../../../utils/readUtils/recordLocation";
 import DictHistory from "../../../models/DictHistory";
+import { Trans } from "react-i18next";
 import { openExternalUrl } from "../../../utils/serviceUtils/urlUtil";
 import lemmatize from "wink-lemmatizer";
 import toast from "react-hot-toast";
-
 declare var window: any;
-
-const PopupDict: React.FC<PopupDictProps> = ({ originalText, currentBook}) => {
-  const [dictText, setDictText] = useState("请稍候");
-  const [word, setWord] = useState("");
-  const [prototype, setPrototype] = useState("");
-  const [dictService, setDictService] = useState(StorageUtil.getReaderConfig("dictService"));
-  const [dictTarget, setDictTarget] = useState(StorageUtil.getReaderConfig("dictTarget") || "en");
-  const [isAddNew, setIsAddNew] = useState(false);
-
-  useEffect(() => {
-    handleLookUp();
-  }, []);
-
-  const handleLookUp = () => {
-    let processedText = originalText.replace(/(\r\n|\n|\r)/gm, "").replace(/-/gm, "");
-    setWord(processedText);
-    
-    let newPrototype = lemmatize.verb(processedText);
-    newPrototype = lemmatize.noun(newPrototype);
-    newPrototype = lemmatize.adjective(newPrototype);
-    setPrototype(newPrototype);
-
+class PopupDict extends React.Component<PopupDictProps, PopupDictState> {
+  constructor(props: PopupDictProps) {
+    super(props);
+    this.state = {
+      dictText: this.props.t("Please wait"),
+      word: "",
+      prototype: "",
+      dictService: StorageUtil.getReaderConfig("dictService"),
+      dictTarget: StorageUtil.getReaderConfig("dictTarget") || "en",
+      isAddNew: false,
+    };
+  }
+  componentDidMount() {
+    this.handleLookUp();
+  }
+  handleLookUp() {
+    let originalText = this.props.originalText
+      .replace(/(\r\n|\n|\r)/gm, "")
+      .replace(/-/gm, "");
+    this.setState({ word: originalText });
+    let prototype = "";
+    prototype = lemmatize.verb(originalText);
+    prototype = lemmatize.noun(prototype);
+    prototype = lemmatize.adjective(prototype);
+    this.setState({ prototype });
     if (StorageUtil.getReaderConfig("isLemmatizeWord") === "yes") {
-      processedText = newPrototype;
+      originalText = prototype;
     }
-
-    if (!dictService || PluginList.getAllPlugins().findIndex((item) => item.identifier === dictService) === -1) {
-      setIsAddNew(true);
+    if (
+      !this.state.dictService ||
+      PluginList.getAllPlugins().findIndex(
+        (item) => item.identifier === this.state.dictService
+      ) === -1
+    ) {
+      this.setState({ isAddNew: true });
     }
-
-    handleDict(processedText);
-    handleRecordHistory(processedText);
-  };
-
-  const handleRecordHistory = async (text: string) => {
-    let bookKey = currentBook.key;
+    this.handleDict(originalText);
+    this.handleRecordHistory(originalText);
+  }
+  handleRecordHistory = async (text: string) => {
+    let bookKey = this.props.currentBook.key;
     let bookLocation = RecordLocation.getHtmlLocation(bookKey);
     let chapter = bookLocation.chapterTitle;
     let word = new DictHistory(bookKey, text, chapter);
@@ -57,53 +62,67 @@ const PopupDict: React.FC<PopupDictProps> = ({ originalText, currentBook}) => {
     dictHistoryArr.push(word);
     window.localforage.setItem("words", dictHistoryArr);
   };
-
-  const handleDict = async (text: string) => {
+  handleDict = async (text: string) => {
     try {
-      let plugin = PluginList.getPluginById(dictService);
+      let plugin = PluginList.getPluginById(this.state.dictService);
       let dictFunc = plugin.script;
       // eslint-disable-next-line no-eval
       eval(dictFunc);
       let dictText = await window.getDictText(
         text,
         "auto",
-        dictTarget,
+        this.state.dictTarget,
         axios,
+        this.props.t,
         plugin.config
       );
       if (dictText.startsWith("https://")) {
         window.open(dictText);
       } else {
-        setDictText(dictText);
-        setTimeout(() => {
-          let moreElement = document.querySelector(".dict-learn-more");
-          if (moreElement) {
-            moreElement.addEventListener("click", () => {
-              openExternalUrl(window.learnMoreUrl);
-            });
+        this.setState(
+          {
+            dictText: dictText,
+          },
+          () => {
+            let moreElement = document.querySelector(".dict-learn-more");
+            if (moreElement) {
+              moreElement.addEventListener("click", () => {
+                openExternalUrl(window.learnMoreUrl);
+              });
+            }
           }
-        }, 0);
+        );
       }
     } catch (error) {
       console.log(error);
-      setDictText("发生错误");
+      this.setState({
+        dictText: this.props.t("Error happened"),
+      });
     }
   };
-
-  const handleChangeDictService = (newDictService: string) => {
-    setDictService(newDictService);
-    setIsAddNew(false);
-    StorageUtil.setReaderConfig("dictService", newDictService);
-    setDictTarget("en");
-    StorageUtil.setReaderConfig("dictTarget", "en");
-    handleLookUp();
+  handleChangeDictService = (dictService: string) => {
+    this.setState(
+      {
+        dictService: dictService,
+        isAddNew: false,
+      },
+      () => {
+        StorageUtil.setReaderConfig("dictService", dictService);
+        this.setState(
+          {
+            dictTarget: "en",
+          },
+          () => {
+            StorageUtil.setReaderConfig("dictTarget", "en");
+            this.handleLookUp();
+          }
+        );
+      }
+    );
   };
-
-  // Render function remains mostly the same, converted to JSX
-  // ...
-
-  return (
-    // JSX from the original render function
+  render() {
+    const renderDictBox = () => {
+      return (
         <div className="dict-container">
           <div className="dict-service-container">
             <select
@@ -111,10 +130,10 @@ const PopupDict: React.FC<PopupDictProps> = ({ originalText, currentBook}) => {
               style={{ margin: 0 }}
               onChange={(event: React.ChangeEvent<HTMLSelectElement>) => {
                 if (event.target.value === "add-new") {
-                  setIsAddNew(true);
+                  this.setState({ isAddNew: true });
                   return;
                 }
-                handleChangeDictService(event.target.value);
+                this.handleChangeDictService(event.target.value);
               }}
             >
               {PluginList.getAllPlugins()
@@ -126,7 +145,7 @@ const PopupDict: React.FC<PopupDictProps> = ({ originalText, currentBook}) => {
                       key={item.identifier}
                       className="add-dialog-shelf-list-option"
                       selected={
-                        dictService === item.identifier
+                        this.state.dictService === item.identifier
                           ? true
                           : false
                       }
@@ -140,7 +159,7 @@ const PopupDict: React.FC<PopupDictProps> = ({ originalText, currentBook}) => {
                 key={"add-new"}
                 className="add-dialog-shelf-list-option"
               >
-                {"添加新插件"}
+                {this.props.t("Add new plugin")}
               </option>
             </select>
           </div>
@@ -150,15 +169,23 @@ const PopupDict: React.FC<PopupDictProps> = ({ originalText, currentBook}) => {
               className="dict-service-selector"
               style={{ margin: 0 }}
               onChange={(event: React.ChangeEvent<HTMLSelectElement>) => {
-                const newDictTarget = event.target.value || "en";
-                setDictTarget(newDictTarget);
-                StorageUtil.setReaderConfig("dictTarget", newDictTarget);
-                handleLookUp();
+                this.setState(
+                  {
+                    dictTarget: event.target.value || "en",
+                  },
+                  () => {
+                    StorageUtil.setReaderConfig(
+                      "dictTarget",
+                      event.target.value
+                    );
+                    this.handleLookUp();
+                  }
+                );
               }}
             >
-              {PluginList.getPluginById(dictService).langList &&
+              {PluginList.getPluginById(this.state.dictService).langList &&
                 (
-                  PluginList.getPluginById(dictService)
+                  PluginList.getPluginById(this.state.dictService)
                     .langList as any[]
                 ).map((item, index) => {
                   return (
@@ -167,7 +194,7 @@ const PopupDict: React.FC<PopupDictProps> = ({ originalText, currentBook}) => {
                       key={item.code}
                       className="add-dialog-shelf-list-option"
                       selected={
-                        dictTarget === item.code ? true : false
+                        this.state.dictTarget === item.code ? true : false
                       }
                     >
                       {item["nativeLang"]}
@@ -178,24 +205,24 @@ const PopupDict: React.FC<PopupDictProps> = ({ originalText, currentBook}) => {
           </div>
           <div className="dict-word">
             {StorageUtil.getReaderConfig("isLemmatizeWord") === "yes"
-              ? prototype
-              : word}
+              ? this.state.prototype
+              : this.state.word}
           </div>
           <div className="dict-original-word">
-              原型
+            <Trans>Prototype</Trans>
             <span>:</span>
-            <span>{prototype}</span>
+            <span>{this.state.prototype}</span>
           </div>
-          {isAddNew && (
+          {this.state.isAddNew && (
             <div
               className="trans-add-new-container"
               style={{ fontWeight: 500 }}
             >
               <textarea
                 name="url"
-                placeholder={
-                  "将插件的代码粘贴到这里，查看文档以了解如何获取更多插件"
-                }
+                placeholder={this.props.t(
+                  "Paste the code of the plugin here, check out document to learn how to get more plugins"
+                )}
                 id="trans-add-content-box"
                 className="trans-add-content-box"
               />
@@ -215,15 +242,15 @@ const PopupDict: React.FC<PopupDictProps> = ({ originalText, currentBook}) => {
                     }
                   }}
                 >
-                  文件
+                  <Trans>Document</Trans>
                 </div>
                 <div
                   className="trans-add-cancel"
                   onClick={() => {
-                    setIsAddNew(false);
+                    this.setState({ isAddNew: false });
                   }}
                 >
-                  取消
+                  <Trans>Cancel</Trans>
                 </div>
                 <div
                   className="trans-add-confirm"
@@ -239,26 +266,26 @@ const PopupDict: React.FC<PopupDictProps> = ({ originalText, currentBook}) => {
 
                       let isSuccess = PluginList.addPlugin(plugin);
                       if (!isSuccess) {
-                        toast.error("插件验证失败");
+                        toast.error(this.props.t("Plugin verification failed"));
                         return;
                       }
-                      setDictService(plugin.identifier);
-                      toast.success("添加成功");
-                      handleChangeDictService(plugin.identifier);
+                      this.setState({ dictService: plugin.identifier });
+                      toast.success(this.props.t("Addition successful"));
+                      this.handleChangeDictService(plugin.identifier);
                     }
-                    setIsAddNew(false);
+                    this.setState({ isAddNew: false });
                   }}
                 >
-                  确认
+                  <Trans>Confirm</Trans>
                 </div>
               </div>
             </div>
           )}
-          {!isAddNew && (
+          {!this.state.isAddNew && (
             <div className="dict-text-box">
               {Parser(
                 DOMPurify.sanitize(
-                  dictText + "<address></address>"
+                  this.state.dictText + "<address></address>"
                 ) || " ",
                 {
                   replace: (domNode) => {},
@@ -267,8 +294,9 @@ const PopupDict: React.FC<PopupDictProps> = ({ originalText, currentBook}) => {
             </div>
           )}
         </div>
-  );
-};
-
+      );
+    };
+    return renderDictBox();
+  }
+}
 export default PopupDict;
-

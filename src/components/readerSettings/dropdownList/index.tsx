@@ -1,16 +1,15 @@
-import { useSelector } from "react-redux"
-import { RootState } from "../../../store"
-import { DropdownListProps } from "./interface"
-import DropdownList from "./component"
-import React from "react"
+import { connect } from "react-redux";
+import { withTranslation } from "react-i18next";
+import DropdownList from "./component";
+import { stateType } from "../../../store";
 
-const DropdownListContainer: React.FC = () => {
-  const state = useSelector((state: RootState) => ({
+const mapStateToProps = (state: stateType) => {
+  return {
     renderBookFunc: state.book.renderBookFunc,
-  }))
-  const props: DropdownListProps = {
-    ...state,
-  }
-  return <DropdownList {...props} />
-}
-export default DropdownListContainer;
+  };
+};
+const actionCreator = {};
+export default connect(
+  mapStateToProps,
+  actionCreator
+)(withTranslation()(DropdownList as any) as any);

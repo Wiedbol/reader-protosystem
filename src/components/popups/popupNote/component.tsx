@@ -1,10 +1,12 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React from "react";
 import "./popupNote.css";
 import Note from "../../../models/Note";
-import { PopupNoteProps } from "./interface";
+
+import { PopupNoteProps, PopupNoteState } from "./interface";
 import RecordLocation from "../../../utils/readUtils/recordLocation";
 import NoteTag from "../../noteTag";
 import NoteModel from "../../../models/Note";
+import { Trans } from "react-i18next";
 import toast from "react-hot-toast";
 import {
   getHightlightCoords,
@@ -16,196 +18,225 @@ import {
   removeOneNote,
 } from "../../../utils/serviceUtils/noteUtil";
 import { classes } from "../../../constants/themeList";
-
 declare var window: any;
 
-const PopupNote: React.FC<PopupNoteProps> = ({
-  noteKey,
-  notes,
-  currentBook,
-  chapter,
-  chapterDocIndex,
-  color,
-  handleOpenMenu,
-  handleFetchNotes,
-  handleMenuMode,
-  handleNoteKey,
-}) => {
-  const [tag, setTag] = useState<string[]>([]);
-  const [text, setText] = useState("");
-
-  useEffect(() => {
-    let textArea: HTMLTextAreaElement | null = document.querySelector(".editor-box");
+class PopupNote extends React.Component<PopupNoteProps, PopupNoteState> {
+  constructor(props: PopupNoteProps) {
+    super(props);
+    this.state = { tag: [], text: "" };
+  }
+  componentDidMount() {
+    let textArea: any = document.querySelector(".editor-box");
     textArea && textArea.focus();
-    if (noteKey) {
-      let noteIndex = window._.findLastIndex(notes, { key: noteKey });
-      setText(notes[noteIndex].text);
-      if (textArea) textArea.value = notes[noteIndex].notes;
+    if (this.props.noteKey) {
+      let noteIndex = window._.findLastIndex(this.props.notes, {
+        key: this.props.noteKey,
+      });
+      this.setState({
+        text: this.props.notes[noteIndex].text,
+      });
+      textArea.value = this.props.notes[noteIndex].notes;
     } else {
       let doc = getIframeDoc();
-      if (!doc) return;
-      let selectedText = doc.getSelection()?.toString();
-      if (!selectedText) return;
-      selectedText = selectedText.replace(/\s\s/g, "")
-        .replace(/\r/g, "")
-        .replace(/\n/g, "")
-        .replace(/\t/g, "")
-        .replace(/\f/g, "");
-      setText(selectedText);
-    }
-  }, [noteKey, notes]);
-
-  const handleTag = useCallback((newTag: string[]) => {
-    setTag(newTag);
-  }, []);
-
-  const handleNoteClick = useCallback((event: Event) => {
-    handleNoteKey((event.target as HTMLElement).dataset.key || "");
-    handleMenuMode("note");
-    handleOpenMenu(true);
-  }, [handleNoteKey, handleMenuMode, handleOpenMenu]);
-
-  const createNote = () => {
-    let notesS = (document.querySelector(".editor-box") as HTMLInputElement)?.value;
-    let cfi = "";
-    if (currentBook.format === "PDF") {
-      cfi = JSON.stringify(RecordLocation.getPDFLocation(currentBook.md5.split("-")[0]));
-    } else {
-      cfi = JSON.stringify(RecordLocation.getHtmlLocation(currentBook.key));
-    }
-
-    if (noteKey) {
-      const updatedNotes = notes.map(item => {
-        if (item.key === noteKey) {
-          item.notes = notesS;
-          item.tag = tag;
-          item.cfi = cfi;
-          return item;
-        } else {
-          return item;
-        }
+      if (!doc) {
+        return;
       }
+      let text = doc.getSelection()?.toString();
+      if (!text) {
+        return;
+      }
+      text = text.replace(/\s\s/g, "");
+      text = text.replace(/\r/g, "");
+      text = text.replace(/\n/g, "");
+      text = text.replace(/\t/g, "");
+      text = text.replace(/\f/g, "");
+      this.setState({ text });
+    }
+  }
+  handleTag = (tag: string[]) => {
+    this.setState({ tag });
+  };
+
+  handleNoteClick = (event: Event) => {
+    this.props.handleNoteKey((event.target as any).dataset.key);
+    this.props.handleMenuMode("note");
+    this.props.handleOpenMenu(true);
+  };
+  createNote() {
+    let notes = (document.querySelector(".editor-box") as HTMLInputElement)
+      .value;
+    let cfi = "";
+    if (this.props.currentBook.format === "PDF") {
+      cfi = JSON.stringify(
+        RecordLocation.getPDFLocation(this.props.currentBook.md5.split("-")[0])
       );
-      window.localforage.setItem("notes", updatedNotes).then(() => {
-        handleOpenMenu(false);
-        toast.success("添加成功");
-        handleFetchNotes();
-        handleMenuMode("");
-        handleNoteKey("");
+    } else {
+      cfi = JSON.stringify(
+        RecordLocation.getHtmlLocation(this.props.currentBook.key)
+      );
+    }
+    if (this.props.noteKey) {
+      this.props.notes.forEach((item) => {
+        if (item.key === this.props.noteKey) {
+          item.notes = notes;
+          item.tag = this.state.tag;
+          item.cfi = cfi;
+        }
+      });
+      window.localforage.setItem("notes", this.props.notes).then(() => {
+        this.props.handleOpenMenu(false);
+        toast.success(this.props.t("Addition successful"));
+        this.props.handleFetchNotes();
+        this.props.handleMenuMode("");
+        this.props.handleNoteKey("");
       });
     } else {
-      let bookKey = currentBook.key;
+      let bookKey = this.props.currentBook.key;
+
       let pageArea = document.getElementById("page-area");
       if (!pageArea) return;
       let iframe = pageArea.getElementsByTagName("iframe")[0];
       if (!iframe) return;
       let doc = iframe.contentDocument;
-      if (!doc) return;
-
+      if (!doc) {
+        return;
+      }
       let charRange;
-      if (currentBook.format !== "PDF") {
-        charRange = window.rangy.getSelection(iframe).saveCharacterRanges(doc.body)[0];
+      if (this.props.currentBook.format !== "PDF") {
+        charRange = window.rangy
+          .getSelection(iframe)
+          .saveCharacterRanges(doc.body)[0];
       }
 
-      let range = currentBook.format === "PDF"
-        ? JSON.stringify(getHightlightCoords())
-        : JSON.stringify(charRange);
+      let range =
+        this.props.currentBook.format === "PDF"
+          ? JSON.stringify(getHightlightCoords())
+          : JSON.stringify(charRange);
 
       let percentage = 0;
-      let noteColor = color || 0;
 
-      let newNote = new Note(
+      let color = this.props.color || 0;
+      let tag = this.state.tag;
+
+      let note = new Note(
         bookKey,
-        chapter,
-        chapterDocIndex,
-        text,
+        this.props.chapter,
+        this.props.chapterDocIndex,
+        this.state.text,
         cfi,
         range,
-        notesS,
+        notes,
         percentage,
-        noteColor,
+        color,
         tag
       );
 
-      let noteArr = [...notes, newNote];
+      let noteArr = this.props.notes;
+      noteArr.push(note);
       window.localforage.setItem("notes", noteArr).then(() => {
-        handleOpenMenu(false);
-        toast.success("添加成功");
-        handleFetchNotes();
-        handleMenuMode("");
-        createOneNote(newNote, currentBook.format, handleNoteClick);
+        this.props.handleOpenMenu(false);
+        toast.success(this.props.t("Addition successful"));
+        this.props.handleFetchNotes();
+        this.props.handleMenuMode("");
+        createOneNote(
+          note,
+          this.props.currentBook.format,
+          this.handleNoteClick
+        );
       });
     }
-  };
-
-  const handleClose = () => {
-    if (noteKey) {
-      const noteIndex = notes.findIndex(item => item.key === noteKey);
+  }
+  handleClose = () => {
+    let noteIndex = -1;
+    let note: NoteModel;
+    if (this.props.noteKey) {
+      this.props.notes.forEach((item, index) => {
+        if (item.key === this.props.noteKey) {
+          noteIndex = index;
+          note = item;
+        }
+      });
       if (noteIndex > -1) {
-        const updatedNotes = [...notes];
-        const removedNote = updatedNotes.splice(noteIndex, 1)[0];
-        window.localforage.setItem("notes", updatedNotes).then(() => {
-          if (currentBook.format === "PDF") {
+        this.props.notes.splice(noteIndex, 1);
+        window.localforage.setItem("notes", this.props.notes).then(() => {
+          if (this.props.currentBook.format === "PDF") {
             removePDFHighlight(
-              JSON.parse(removedNote.range),
-              classes[removedNote.color],
-              removedNote.key
+              JSON.parse(note.range),
+              classes[note.color],
+              note.key
             );
           }
-          toast.success("删除成功");
-          handleMenuMode("");
-          handleFetchNotes();
-          handleNoteKey("");
-          removeOneNote(removedNote.key, currentBook.format);
-          handleOpenMenu(false);
+
+          toast.success(this.props.t("Deletion successful"));
+          this.props.handleMenuMode("");
+          this.props.handleFetchNotes();
+          this.props.handleNoteKey("");
+          removeOneNote(note.key, this.props.currentBook.format);
+          this.props.handleOpenMenu(false);
         });
       }
     } else {
-      handleOpenMenu(false);
-      handleMenuMode("");
-      handleNoteKey("");
+      this.props.handleOpenMenu(false);
+      this.props.handleMenuMode("");
+      this.props.handleNoteKey("");
     }
   };
 
-  const renderNoteEditor = () => {
-    const note = noteKey ? notes.find(item => item.key === noteKey) : null;
+  render() {
+    let note: NoteModel;
+    if (this.props.noteKey) {
+      this.props.notes.forEach((item) => {
+        if (item.key === this.props.noteKey) {
+          note = item;
+        }
+      });
+    }
 
-    return (
-      <div className="note-editor">
-        <div className="note-original-text">{text}</div>
-        <div className="editor-box-parent">
-          <textarea className="editor-box" />
-        </div>
-        <div
-          className="note-tags"
-          style={{ position: "absolute", bottom: "0px", height: "40px" }}
-        >
-          <NoteTag
-            handleTag={handleTag}
-            tag={noteKey && note ? note.tag : []}
-            isCard = {false}
-          />
-        </div>
-        <div className="note-button-container">
-          <span
-            className="book-manage-title"
-            onClick={handleClose}
+    const renderNoteEditor = () => {
+      return (
+        <div className="note-editor">
+          <div className="note-original-text">{this.state.text}</div>
+          <div className="editor-box-parent">
+            <textarea className="editor-box" />
+          </div>
+          <div
+            className="note-tags"
+            style={{ position: "absolute", bottom: "0px", height: "40px" }}
           >
-            {noteKey ? "删除" : "取消" }
-          </span>
-          <span
-            className="book-manage-title"
-            onClick={createNote}
-          >
-            确定
-          </span>
+            <NoteTag
+              {...{
+                handleTag: this.handleTag,
+                tag: this.props.noteKey && note ? note.tag : [],
+              }}
+            />
+          </div>
+
+          <div className="note-button-container">
+            <span
+              className="book-manage-title"
+              onClick={() => {
+                this.handleClose();
+              }}
+            >
+              {this.props.noteKey ? (
+                <Trans>Delete</Trans>
+              ) : (
+                <Trans>Cancel</Trans>
+              )}
+            </span>
+            <span
+              className="book-manage-title"
+              onClick={() => {
+                this.createNote();
+              }}
+            >
+              <Trans>Confirm</Trans>
+            </span>
+          </div>
         </div>
-      </div>
-    );
-  };
-
-  return renderNoteEditor();
-};
-
+      );
+    };
+    return renderNoteEditor();
+  }
+}
 export default PopupNote;
-

@@ -1,4 +1,5 @@
 import { openExternalUrl } from "../serviceUtils/urlUtil";
+
 export const handleLinkJump = async (event: any, rendition: any = {}) => {
   let href;
   if (event.target) {

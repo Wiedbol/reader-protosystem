@@ -1,27 +1,15 @@
-import { useDispatch, useSelector } from "react-redux"
-import { AppDispatch, RootState } from "../../store"
-import { viewMode } from "../../constants/viewMode";
-import { fetchViewMode } from "../../store/slices";
-import { ViewModeProps } from "./interface";
+import { connect } from "react-redux";
+import { stateType } from "../../store";
+import { withTranslation } from "react-i18next";
 import ViewMode from "./component";
-import React from "react";
-
-interface ViewModeContainerProps {
-
-}
-
-const ViewModeContainer: React.FC<ViewModeContainerProps> = () => {
-  const dispatch = useDispatch<AppDispatch>();
-  const state = useSelector((state: RootState) => ({
+import { handleFetchList } from "../../store/actions";
+const mapStateToProps = (state: stateType) => {
+  return {
     viewMode: state.manager.viewMode,
-  }))
-  const actionCreator = {
-    handleFetchList: () => dispatch(fetchViewMode()),
-  }
-  const props: ViewModeProps = {
-    ...state,
-    ...actionCreator,
-  }
-  return <ViewMode {...props} />
-}
-export default ViewModeContainer;
+  };
+};
+const actionCreator = { handleFetchList };
+export default connect(
+  mapStateToProps,
+  actionCreator
+)(withTranslation()(ViewMode as any) as any);

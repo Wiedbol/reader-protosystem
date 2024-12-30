@@ -16,8 +16,15 @@ export interface PopupMenuProps {
   chapterDocIndex: number;
   chapter: string;
   handleNoteKey: (key: string) => void;
+  t: (title: string) => string;
   handleOpenMenu: (isOpenMenu: boolean) => void;
   handleMenuMode: (menu: string) => void;
   handleChangeDirection: (isChangeDirection: boolean) => void;
   handleRenderNoteFunc: (renderNoteFunc: () => void) => void;
+}
+export interface PopupMenuStates {
+  deleteKey: string;
+  isRightEdge: boolean;
+  // cfiRange: string;
+  rect: DOMRect | null;
 }

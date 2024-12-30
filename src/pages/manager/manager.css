@@ -2,3 +2,52 @@
   width: 100%;
   height: 100%;
 }
+.arrow-text {
+  font-size: 20px;
+}
+
+.auth-page-close-icon {
+  font-size: 60px !important;
+  float: none !important;
+}
+.mobile-warning {
+  text-align: center;
+  font-size: 22px;
+  padding: 70px 30px;
+  line-height: 30px;
+}
+.drag-background {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0px;
+  left: 0px;
+  z-index: 9;
+}
+@keyframes fade-in-out {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+.drag-info {
+  width: 200px;
+  height: 300px;
+  position: absolute;
+  top: 80px;
+  right: 0px;
+  text-align: center;
+}
+.waring-title {
+  text-align: center;
+  margin: 50px 0px 20px;
+  font-size: 40px;
+  font-weight: 600;
+}
+.waring-pic {
+  width: 100vw;
+  position: absolute;
+  bottom: 0px;
+}

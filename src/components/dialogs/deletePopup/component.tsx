@@ -1,50 +1,51 @@
-import toast from "react-hot-toast";
-import { DeletePopupProps } from "./interface"
 import React from "react";
-
-export function DeletePopup(props:DeletePopupProps) {
-  const handleCancel = () => {
-    props.handleDeletePopup(false);
+import { Trans } from "react-i18next";
+import { DeletePopupProps } from "./interface";
+import toast from "react-hot-toast";
+class DeletePopup extends React.Component<DeletePopupProps> {
+  handleCancel = () => {
+    this.props.handleDeletePopup(false);
   };
- const handleConfirm = () => {
-  props.handleDeletePopup(false);
-  if (typeof props.handleDeleteOperation === 'function') {
-    props.handleDeleteOperation();
-    toast.success("删除成功");
-  } else {
-    console.error("handleDeleteOperation is not a function");
+  handleComfirm = () => {
+    this.props.handleDeletePopup(false);
+    this.props.handleDeleteOpearion();
+    toast.success(this.props.t("Deletion successful"));
+  };
+  render() {
+    return (
+      <div className="delete-dialog-container">
+        <div className="delete-dialog-title">
+          <Trans>{this.props.title}</Trans>
+        </div>
+
+        <div className="delete-dialog-book">
+          <div className="delete-dialog-book-title">{this.props.name}</div>
+        </div>
+
+        <div className="delete-dialog-other-option">
+          <Trans>{this.props.description}</Trans>
+        </div>
+        <div className="add-dialog-button-container">
+          <div
+            className="add-dialog-cancel"
+            onClick={() => {
+              this.handleCancel();
+            }}
+          >
+            <Trans>Cancel</Trans>
+          </div>
+          <div
+            className="add-dialog-confirm"
+            onClick={() => {
+              this.handleComfirm();
+            }}
+          >
+            <Trans>Delete</Trans>
+          </div>
+        </div>
+      </div>
+    );
   }
-};
- 
-  return (
-    <div className="delete-dialog-container">
-      <div className="delete-dialog-title">
-        {props.title}
-      </div>
-
-      <div className="delete-dialog-book">
-        <div className="delete-dialog-book-title">{props.name}</div>
-      </div>
-      <div className="delete-dialog-other-operation">
-        {props.description}
-      </div>
-      <div className="add-dialog-button-container">
-        <div
-          className="add-dialog-cancel"
-          onClick={() => {
-            handleCancel();
-          }}
-        >取消</div>
-
-        <div
-          className="add-dialog-confirm"
-          onClick={() => {
-            handleConfirm();
-          }}
-        >确认删除</div>
-      </div>
-    </div>
-  )
 }
 
 export default DeletePopup;

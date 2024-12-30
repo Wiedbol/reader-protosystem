@@ -1,38 +1,30 @@
-import React from 'react'
-import { useDispatch, useSelector } from 'react-redux'
-import { AppDispatch, RootState } from '../../store'
-import bookModel from '../../models/Book'
-import { fetchBookmarks, fetchBooks, fetchNotes, fetchPercentage, handleReadingBook } from '../../store/slices'
-import { ReaderProps } from './interface'
-import Reader from './component'
+import {
+  handleFetchNotes,
+  handleFetchBookmarks,
+  handleFetchBooks,
+  handleReadingBook,
+  handleFetchPercentage,
+} from "../../store/actions";
+import { connect } from "react-redux";
+import { stateType } from "../../store";
+import Reader from "./component";
+import { withTranslation } from "react-i18next";
 
-interface htmlReaderContainerProps {
-
-}
-
-const HtmlReaderContainer: React.FC<htmlReaderContainerProps> = () => {
-  const dispatch = useDispatch<AppDispatch>()
-  const state = useSelector((state: RootState) => ({
+const mapStateToProps = (state: stateType) => {
+  return {
     currentBook: state.book.currentBook,
     percentage: state.progressPanel.percentage,
     htmlBook: state.reader.htmlBook,
-  }))
-
-  const actionCreator = {
-    handleFetchNotes: () => dispatch(fetchNotes()),
-    handleFetchBookmarks: () => dispatch(fetchBookmarks()),
-    handleFetchBooks: () => dispatch(fetchBooks()),
-    handleReadingBook: (book: bookModel) => dispatch(handleReadingBook(book)),
-    handleFetchPercentage: (book: bookModel) => dispatch(fetchPercentage(book)),
-  }
-  const props: ReaderProps = {
-    ...state,
-    ...actionCreator,
-  }
-
-  return (
-    <Reader {...props} />
-  )
-}
-
-export default HtmlReaderContainer
+  };
+};
+const actionCreator = {
+  handleFetchNotes,
+  handleFetchBookmarks,
+  handleFetchBooks,
+  handleReadingBook,
+  handleFetchPercentage,
+};
+export default connect(
+  mapStateToProps,
+  actionCreator
+)(withTranslation()(Reader as any) as any);

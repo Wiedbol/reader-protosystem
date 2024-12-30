@@ -1,53 +1,73 @@
-import { useState } from "react";
-import { EmptyPageProps } from "./interface";
-import { emptyList } from "../../constants/emptyList";
 import React from "react";
+import "./emptyPage.css";
+import { emptyList } from "../../constants/emptyList";
+import { Trans } from "react-i18next";
+import { EmptyPageProps, EmptyPageState } from "./interface";
+import StorageUtil from "../../utils/serviceUtils/storageUtil";
 
-export function EmptyPage(props: EmptyPageProps) {
-  const renderEmptyList = () => {
-    return emptyList.map((item) => {
-      return (
-        <div
-          className="empty-page-info-container"
-          key={item.mode}
-          style={
-            props.mode === item.mode ? {} : {visibility: "hidden"}
-          }
-        >
-          <div className="empty-page-info-main">
-            {item.main}
+class EmptyPage extends React.Component<EmptyPageProps, EmptyPageState> {
+  render() {
+    const renderEmptyList = () => {
+      return emptyList.map((item) => {
+        return (
+          <div
+            className="empty-page-info-container"
+            key={item.mode}
+            style={
+              this.props.mode === item.mode ? {} : { visibility: "hidden" }
+            }
+          >
+            <div className="empty-page-info-main">
+              <Trans>{item.main}</Trans>
+            </div>
+            <div className="empty-page-info-sub">
+              <Trans>{item.sub}</Trans>
+            </div>
           </div>
-          <div className="empty-page-info-sub">
-            {item.sub}
-          </div>
-        </div>
-      );
-    });
-  };
-  return (
-    <div 
-      className="empty-page-container"
-      style={
-        props.isCollapsed
-          ? { 
-              width: "calc(100vw - 100px)", left: "100px" ,
+        );
+      });
+    };
+    return (
+      <div
+        className="empty-page-container"
+        style={
+          this.props.isCollapsed
+            ? { width: "calc(100vw - 100px)", left: "100px" ,
               backgroundImage: `url("./assets/background.jpg")`,
               backgroundPosition: "center",
               backgroundSize: "cover",
               backgroundRepeat: "no-repeat",
-          }
-          : {
-              backgroundImage: `url("./assets/background.jpg")`,
+            }
+            : {backgroundImage: `url("./assets/background.jpg")`,
               backgroundPosition: "center",
               backgroundSize: "cover",
               backgroundRepeat: "no-repeat",
               width: "100vw",
-          }
-      }
-    >
-    {renderEmptyList()}
-    </div>
-  )
+            }
+
+        }
+      >
+        <div
+          className="empty-illustration-container"
+          style={{ width: "calc(100% - 50px)" }}
+        >
+          <img
+            src={
+              StorageUtil.getReaderConfig("appSkin") === "night" ||
+              (StorageUtil.getReaderConfig("appSkin") === "system" &&
+                StorageUtil.getReaderConfig("isOSNight") === "yes")
+                ? "./assets/empty_light.svg"
+                : "./assets/empty.svg"
+            }
+            alt=""
+            className="empty-page-illustration"
+          />
+        </div>
+
+        {renderEmptyList()}
+      </div>
+    );
+  }
 }
 
 export default EmptyPage;

@@ -1,36 +1,18 @@
-import React from'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { AppDispatch, RootState } from '../../../store';
-import { fetchBookmarks, handleSearch } from '../../../store/slices';
-import { NavigationPanelProps } from './interface';
-import NavigationPanel from './component';
+import { connect } from "react-redux";
+import { handleFetchBookmarks, handleSearch } from "../../../store/actions";
+import { stateType } from "../../../store";
+import { withTranslation } from "react-i18next";
+import NavigationPanel from "./component";
 
-interface NavigationPanelContainerProps {
-  time: number;
-}
-
-const NavigationPanelContainer: React.FC<NavigationPanelContainerProps> = ({
-  time,
-}) => {
-  const dispatch = useDispatch<AppDispatch>();
-  const state = useSelector((state: RootState) => ({
+const mapStateToProps = (state: stateType) => {
+  return {
     currentBook: state.book.currentBook,
     bookmarks: state.reader.bookmarks,
     htmlBook: state.reader.htmlBook,
-  }));
-
-  const actionCreator = {
-    handleFetchBookmarks: () => dispatch(fetchBookmarks()),
-    handleSearch: (isSearch: boolean) => dispatch(handleSearch(isSearch)),
-  }
-
-  const props: NavigationPanelProps = {
-    ...state,
-    ...actionCreator,
-    time,
-  }
-
-  return <NavigationPanel {...props} />
-}
-
-export default NavigationPanelContainer;
+  };
+};
+const actionCreator = { handleFetchBookmarks, handleSearch };
+export default connect(
+  mapStateToProps,
+  actionCreator
+)(withTranslation()(NavigationPanel as any) as any);

@@ -1,16 +1,9 @@
-import React from 'react'
-import { useDispatch, useSelector } from 'react-redux'
-import { AppDispatch, RootState } from '../../../store'
-import { ProgressPanelProps } from './interface';
-import ProgressPanel from './component';
-
-interface ProgressPanelContainerProps {
-
-}
-
-const ProgressPanelContainer: React.FC<ProgressPanelContainerProps> = () => {
-  const dispatch = useDispatch<AppDispatch>();
-  const state = useSelector((state: RootState) => ({
+import { connect } from "react-redux";
+import { stateType } from "../../../store";
+import { withTranslation } from "react-i18next";
+import ProgressPanel from "./component";
+const mapStateToProps = (state: stateType) => {
+  return {
     currentBook: state.book.currentBook,
     isReading: state.book.isReading,
     percentage: state.progressPanel.percentage,
@@ -18,15 +11,10 @@ const ProgressPanelContainer: React.FC<ProgressPanelContainerProps> = () => {
     currentChapterIndex: state.reader.currentChapterIndex,
     currentChapter: state.reader.currentChapter,
     renderBookFunc: state.book.renderBookFunc,
-  }))
-  const actionCreator = {
-
-  }
-  const props: ProgressPanelProps = {
-    ...state,
-    ...actionCreator,
-  }
-  return <ProgressPanel {...props} />
-}
-
-export default ProgressPanelContainer;
+  };
+};
+const actionCreator = {};
+export default connect(
+  mapStateToProps,
+  actionCreator
+)(withTranslation()(ProgressPanel as any) as any);

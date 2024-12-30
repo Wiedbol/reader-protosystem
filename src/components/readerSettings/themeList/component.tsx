@@ -1,34 +1,45 @@
-import React, { useState, useCallback, useMemo } from "react";
+import React from "react";
 import { backgroundList, textList } from "../../../constants/themeList";
 import StyleUtil from "../../../utils/readUtils/styleUtil";
 import "./themeList.css";
-import { ThemeListProps } from "./interface";
+import { Trans } from "react-i18next";
+import { ThemeListProps, ThemeListState } from "./interface";
 import StorageUtil from "../../../utils/serviceUtils/storageUtil";
 import { Panel as ColorPickerPanel } from "rc-color-picker";
 import "rc-color-picker/assets/index.css";
 import ThemeUtil from "../../../utils/readUtils/themeUtil";
 import BookUtil from "../../../utils/fileUtils/bookUtil";
 
-const ThemeList: React.FC<ThemeListProps> = ({ renderBookFunc }) => {
-
-  const [currentBackgroundIndex, setCurrentBackgroundIndex] = useState(
-    backgroundList.concat(ThemeUtil.getAllThemes()).findIndex((item) => 
-      item === (StorageUtil.getReaderConfig("backgroundColor") || "rgba(255,255,255,1)")
-    )
-  );
-
-  const [currentTextIndex, setCurrentTextIndex] = useState(
-    textList.concat(ThemeUtil.getAllThemes()).findIndex((item) => 
-      item === (StorageUtil.getReaderConfig("textColor") || "rgba(0,0,0,1)")
-    )
-  );
-
-  const [isShowTextPicker, setIsShowTextPicker] = useState(false);
-  const [isShowBgPicker, setIsShowBgPicker] = useState(false);
-
-  const handleChangeBgColor = useCallback((color: string, index: number = -1) => {
+class ThemeList extends React.Component<ThemeListProps, ThemeListState> {
+  constructor(props: ThemeListProps) {
+    super(props);
+    this.state = {
+      currentBackgroundIndex: backgroundList
+        .concat(ThemeUtil.getAllThemes())
+        .findIndex((item) => {
+          return (
+            item ===
+            (StorageUtil.getReaderConfig("backgroundColor") ||
+              "rgba(255,255,255,1)")
+          );
+        }),
+      currentTextIndex: textList
+        .concat(ThemeUtil.getAllThemes())
+        .findIndex((item) => {
+          return (
+            item ===
+            (StorageUtil.getReaderConfig("textColor") || "rgba(0,0,0,1)")
+          );
+        }),
+      isShowTextPicker: false,
+      isShowBgPicker: false,
+    };
+  }
+  handleChangeBgColor = (color: string, index: number = -1) => {
     StorageUtil.setReaderConfig("backgroundColor", color);
-    setCurrentBackgroundIndex(index);
+    this.setState({
+      currentBackgroundIndex: index,
+    });
     if (index === 1) {
       StorageUtil.setReaderConfig("textColor", "rgba(255,255,255,1)");
     } else if (
@@ -38,153 +49,176 @@ const ThemeList: React.FC<ThemeListProps> = ({ renderBookFunc }) => {
       StorageUtil.setReaderConfig("textColor", "rgba(0,0,0,1)");
     }
     BookUtil.reloadBooks();
-  }, []);
+  };
 
-  const handleChooseBgColor = useCallback((color) => {
+  handleChooseBgColor = (color) => {
     StorageUtil.setReaderConfig("backgroundColor", color.color);
     StyleUtil.addDefaultCss();
-  }, []);
-
-  const handleColorTextPicker = useCallback((showPicker: boolean) => {
+  };
+  handleColorTextPicker = (isShowTextPicker: boolean) => {
     if (
-      !showPicker &&
-      textList.concat(ThemeUtil.getAllThemes()).findIndex((item) => 
-        item === (StorageUtil.getReaderConfig("textColor") || "rgba(0,0,0,1)")
-      ) === -1
+      !isShowTextPicker &&
+      textList.concat(ThemeUtil.getAllThemes()).findIndex((item) => {
+        return (
+          item === (StorageUtil.getReaderConfig("textColor") || "rgba(0,0,0,1)")
+        );
+      }) === -1
     ) {
       ThemeUtil.setThemes(StorageUtil.getReaderConfig("textColor"));
     }
-    setIsShowTextPicker(showPicker);
-  }, []);
-
-  const handleColorBgPicker = useCallback((showPicker: boolean) => {
+    this.setState({ isShowTextPicker });
+  };
+  handleColorBgPicker = (isShowBgPicker: boolean) => {
     if (
-      !showPicker &&
-      backgroundList.concat(ThemeUtil.getAllThemes()).findIndex((item) => 
-        item === (StorageUtil.getReaderConfig("backgroundColor") || "rgba(255,255,255,1)")
-      ) === -1
+      !isShowBgPicker &&
+      backgroundList.concat(ThemeUtil.getAllThemes()).findIndex((item) => {
+        return (
+          item ===
+          (StorageUtil.getReaderConfig("backgroundColor") ||
+            "rgba(255,255,255,1)")
+        );
+      }) === -1
     ) {
       ThemeUtil.setThemes(StorageUtil.getReaderConfig("backgroundColor"));
     }
-    setIsShowBgPicker(showPicker);
-  }, []);
-
-  const handleChooseTextColor = useCallback((color) => {
+    this.setState({ isShowBgPicker });
+  };
+  handleChooseTextColor = (color) => {
     if (typeof color !== "object") {
-      setCurrentTextIndex(
-        textList.concat(ThemeUtil.getAllThemes()).indexOf(color)
-      );
+      this.setState({
+        currentTextIndex: textList
+          .concat(ThemeUtil.getAllThemes())
+          .indexOf(color),
+      });
     }
     StorageUtil.setReaderConfig(
       "textColor",
       typeof color === "object" ? color.color : color
     );
-    renderBookFunc();
-  }, [renderBookFunc]);
-
-  const renderBackgroundColorList = useMemo(() => {
-    return backgroundList.concat(ThemeUtil.getAllThemes()).map((item, index) => (
-      <li
-        key={item + index}
-        className={
-          index === currentBackgroundIndex
-            ? "active-color background-color-circle"
-            : "background-color-circle"
-        }
-        onClick={() => handleChangeBgColor(item, index)}
-        style={{ backgroundColor: item }}
-      >
-        {index > 3 && index === currentBackgroundIndex && (
-          <span
-            className="icon-close"
-            onClick={(e) => {
-              e.stopPropagation();
-              ThemeUtil.clear(item);
+    this.props.renderBookFunc();
+  };
+  render() {
+    const renderBackgroundColorList = () => {
+      return backgroundList
+        .concat(ThemeUtil.getAllThemes())
+        .map((item, index) => {
+          return (
+            <li
+              key={item + index}
+              className={
+                index === this.state.currentBackgroundIndex
+                  ? "active-color background-color-circle"
+                  : "background-color-circle"
+              }
+              onClick={() => {
+                this.handleChangeBgColor(item, index);
+              }}
+              style={{ backgroundColor: item }}
+            >
+              {index > 3 && index === this.state.currentBackgroundIndex && (
+                <span
+                  className="icon-close"
+                  onClick={() => {
+                    ThemeUtil.clear(item);
+                  }}
+                ></span>
+              )}
+            </li>
+          );
+        });
+    };
+    const renderTextColorList = () => {
+      return textList.concat(ThemeUtil.getAllThemes()).map((item, index) => {
+        return (
+          <li
+            key={item + index}
+            className={
+              index === this.state.currentTextIndex
+                ? "active-color background-color-circle"
+                : "background-color-circle"
+            }
+            onClick={() => {
+              this.handleChooseTextColor(item);
             }}
-          ></span>
-        )}
-      </li>
-    ));
-  }, [currentBackgroundIndex, handleChangeBgColor]);
-
-  const renderTextColorList = useMemo(() => {
-    return textList.concat(ThemeUtil.getAllThemes()).map((item, index) => (
-      <li
-        key={item + index}
-        className={
-          index === currentTextIndex
-            ? "active-color background-color-circle"
-            : "background-color-circle"
-        }
-        onClick={() => handleChooseTextColor(item)}
-        style={{ backgroundColor: item }}
-      >
-        {index > 3 && index === currentTextIndex && (
-          <span
-            className="icon-close"
-            onClick={(e) => {
-              e.stopPropagation();
-              ThemeUtil.clear(item);
+            style={{ backgroundColor: item }}
+          >
+            {index > 3 && index === this.state.currentTextIndex && (
+              <span
+                className="icon-close"
+                onClick={() => {
+                  ThemeUtil.clear(item);
+                }}
+              ></span>
+            )}
+          </li>
+        );
+      });
+    };
+    return (
+      <div className="background-color-setting">
+        <div className="background-color-text">
+          <Trans>Background color</Trans>
+        </div>
+        <ul className="background-color-list">
+          <li
+            className="background-color-circle"
+            onClick={() => {
+              this.handleColorBgPicker(!this.state.isShowBgPicker);
             }}
-          ></span>
-        )}
-      </li>
-    ));
-  }, [currentTextIndex, handleChooseTextColor]);
+          >
+            <span
+              className={this.state.isShowBgPicker ? "icon-check" : "icon-more"}
+            ></span>
+          </li>
 
-  return (
-    <div className="background-color-setting">
-      <div className="background-color-text">
-      <span>背景颜色</span>
+          {renderBackgroundColorList()}
+        </ul>
+        {this.state.isShowBgPicker && (
+          <ColorPickerPanel
+            enableAlpha={false}
+            color={StorageUtil.getReaderConfig("backgroundColor")}
+            onChange={this.handleChooseBgColor}
+            mode="RGB"
+            style={{
+              margin: 20,
+              animation: "fade-in 0.2s ease-in-out 0s 1",
+            }}
+          />
+        )}
+        <div className="background-color-text">
+          <Trans>Text color</Trans>
+        </div>
+        <ul className="background-color-list">
+          <li
+            className="background-color-circle"
+            onClick={() => {
+              this.handleColorTextPicker(!this.state.isShowTextPicker);
+            }}
+          >
+            <span
+              className={
+                this.state.isShowTextPicker ? "icon-check" : "icon-more"
+              }
+            ></span>
+          </li>
+
+          {renderTextColorList()}
+        </ul>
+        {this.state.isShowTextPicker && (
+          <ColorPickerPanel
+            enableAlpha={false}
+            color={StorageUtil.getReaderConfig("textColor")}
+            onChange={this.handleChooseTextColor}
+            mode="RGB"
+            style={{
+              margin: 20,
+              animation: "fade-in 0.2s ease-in-out 0s 1",
+            }}
+          />
+        )}
       </div>
-      <ul className="background-color-list">
-        <li
-          className="background-color-circle"
-          onClick={() => handleColorBgPicker(!isShowBgPicker)}
-        >
-          <span className={isShowBgPicker ? "icon-check" : "icon-more"}></span>
-        </li>
-        {renderBackgroundColorList}
-      </ul>
-      {isShowBgPicker && (
-        <ColorPickerPanel
-          enableAlpha={false}
-          color={StorageUtil.getReaderConfig("backgroundColor")}
-          onChange={handleChooseBgColor}
-          mode="RGB"
-          style={{
-            margin: 20,
-            animation: "fade-in 0.2s ease-in-out 0s 1",
-          }}
-        />
-      )}
-      <div className="background-color-text">
-      <span>文字颜色</span>
-      </div>
-      <ul className="background-color-list">
-        <li
-          className="background-color-circle"
-          onClick={() => handleColorTextPicker(!isShowTextPicker)}
-        >
-          <span className={isShowTextPicker ? "icon-check" : "icon-more"}></span>
-        </li>
-        {renderTextColorList}
-      </ul>
-      {isShowTextPicker && (
-        <ColorPickerPanel
-          enableAlpha={false}
-          color={StorageUtil.getReaderConfig("textColor")}
-          onChange={handleChooseTextColor}
-          mode="RGB"
-          style={{
-            margin: 20,
-            animation: "fade-in 0.2s ease-in-out 0s 1",
-          }}
-        />
-      )}
-    </div>
-  );
-};
+    );
+  }
+}
 
 export default ThemeList;
-

@@ -1,40 +1,16 @@
-import React from 'react';
-import { useDispatch } from 'react-redux';
-import { fetchBooks } from '../../../store/slices/managerSlice';
-import DeletePopup from './component';
-import { AppDispatch } from '../../../store';
+import { connect } from "react-redux";
+import { handleFetchBooks } from "../../../store/actions";
+import { stateType } from "../../../store";
+import { withTranslation } from "react-i18next";
+import DeletePopup from "./component";
 
-interface DeletePopupProps {
-  handleDeletePopup: (isOpen: boolean) => void;
-  handleDeleteOperation?: () => void;
-  title: string;
-  name?: string;
-  description: string;
-}
-
-const DeletePopupContainer: React.FC<DeletePopupProps> = ({
-  handleDeletePopup,
-  handleDeleteOperation,
-  title,
-  name,
-  description
-}) => {
-  const dispatch = useDispatch<AppDispatch>();
-
-  const handleFetchBooks = () => {
-    dispatch(fetchBooks());
-  };
-
-  return (
-    <DeletePopup
-      handleDeletePopup={handleDeletePopup}
-      handleDeleteOperation={handleDeleteOperation}
-      // handleFetchBooks={handleFetchBooks}
-      title={title}
-      name={name}
-      description={description}
-    />
-  );
+const mapStateToProps = (state: stateType) => {
+  return {};
 };
-
-export default DeletePopupContainer;
+const actionCreator = {
+  handleFetchBooks,
+};
+export default connect(
+  mapStateToProps,
+  actionCreator
+)(withTranslation()(DeletePopup as any) as any);

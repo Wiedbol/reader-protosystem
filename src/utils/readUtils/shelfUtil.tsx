@@ -1,8 +1,8 @@
 const defaultShelf = {
   New: null,
-  Study: [],
-  Work: [],
-  Entertainment: [],
+  // Study: [],
+  // Work: [],
+  // Entertainment: [],
 };
 class ShelfUtil {
   static setShelf(shelfTitle: string, bookKey: string) {

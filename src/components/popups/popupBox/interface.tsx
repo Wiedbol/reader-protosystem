@@ -6,18 +6,23 @@ export interface PopupBoxProps {
   isOpenMenu: boolean;
   isChangeDirection: boolean;
   menuMode: string;
+  digests: NoteModel[];
   notes: NoteModel[];
   color: number;
-  noteKey: string;
-  // cfiRange: any;
-  digests: NoteModel[];
   rendition: any;
+  // cfiRange: any;
   rect: any;
+  noteKey: string;
   chapterDocIndex: number;
   chapter: string;
   handleNoteKey: (key: string) => void;
+  t: (title: string) => string;
   handleOpenMenu: (isOpenMenu: boolean) => void;
   handleMenuMode: (menu: string) => void;
   handleChangeDirection: (isChangeDirection: boolean) => void;
   handleRenderNoteFunc: (renderNoteFunc: () => void) => void;
+}
+export interface PopupBoxStates {
+  deleteKey: string;
+  rect: DOMRect | null;
 }

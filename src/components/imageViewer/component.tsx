@@ -1,68 +1,82 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import "./imageViewer.css";
-import { ImageViewerProps } from "./interface";
+import { ImageViewerProps, ImageViewerStates } from "./interface";
+
 import { handleLinkJump } from "../../utils/readUtils/linkUtil";
 import { getIframeDoc } from "../../utils/serviceUtils/docUtil";
 declare var window: any;
-
-const ImageViewer: React.FC<ImageViewerProps> = (props) => {
-  const [isShowImage, setIsShowImage] = useState(false);
-  const [imageRatio, setImageRatio] = useState("horizontal");
-  const [zoomIndex, setZoomIndex] = useState(0);
-  const [rotateIndex, setRotateIndex] = useState(0);
-
-  useEffect(() => {
-    const onRendered = () => {
-      const doc = getIframeDoc();
-      if (doc) {
-        doc.addEventListener("click", showImage);
-      }
+class ImageViewer extends React.Component<ImageViewerProps, ImageViewerStates> {
+  constructor(props: ImageViewerProps) {
+    super(props);
+    this.state = {
+      isShowImage: false,
+      imageRatio: "horizontal",
+      zoomIndex: 0,
+      rotateIndex: 0,
     };
-    props.rendition.on("rendered", onRendered);
+  }
 
-    return () => {
-      props.rendition.off("rendered", onRendered);
-    };
-  }, [props.rendition]);
+  componentDidMount() {
+    this.props.rendition.on("rendered", () => {
+      let doc = getIframeDoc();
+      if (!doc) return;
+      // StyleUtil.addDefaultCss();
+      doc.addEventListener("click", this.showImage);
+    });
+  }
 
-  const showImage = async (event: any) => {
+  showImage = async (event: any) => {
     event.preventDefault();
-    if (props.isShow) {
-      ["left", "right", "top", "bottom"].forEach((direction) => {
-        props.handleLeaveReader(direction);
-      });
+    if (this.props.isShow) {
+      this.props.handleLeaveReader("left");
+      this.props.handleLeaveReader("right");
+      this.props.handleLeaveReader("top");
+      this.props.handleLeaveReader("bottom");
     }
-    await handleLinkJump(event, props.rendition);
+    await handleLinkJump(event, this.props.rendition);
 
-    const target = event.target;
-    if (!target.getAttribute("src") || target.getAttribute("href") || target.parentNode.getAttribute("href")) {
+    if (
+      !event.target.getAttribute("src") ||
+      event.target.getAttribute("href") ||
+      event.target.parentNode.getAttribute("href")
+    ) {
       return;
     }
-
-    setIsShowImage((prevShow) => !prevShow);
-    setZoomIndex(0);
-    setRotateIndex(0);
-
-    const img = new Image();
-    img.onload = function () {
-      setImageRatio(img.naturalWidth / img.naturalHeight > 1 ? "horizontal" : "vertical");
+    if (this.state.isShowImage) {
+      this.setState({
+        isShowImage: false,
+        zoomIndex: 0,
+        rotateIndex: 0,
+        imageRatio: "horizontal",
+      });
+    }
+    event.preventDefault();
+    const handleDirection = (direction: string) => {
+      this.setState({ imageRatio: direction });
     };
-    img.src = target.src;
-
-    const image = document.querySelector("#selectedImage") as HTMLImageElement | null;
+    var img = new Image();
+    img.addEventListener("load", function () {
+      handleDirection(
+        this.naturalWidth / this.naturalHeight > 1 ? "horizontal" : "vertical"
+      );
+    });
+    img.src = event.target.src;
+    let image: HTMLImageElement | null =
+      document.querySelector("#selectedImage");
     if (image) {
-      image.src = target.src;
-      if (imageRatio === "horizontal") {
+      image!.src = event.target.src;
+      this.setState({ isShowImage: true });
+      if (this.state.imageRatio === "horizontal") {
         image.style.width = "60vw";
       } else {
         image.style.height = "100vh";
       }
     }
   };
-
-  const hideImage = (event: any) => {
+  hideImage = (event: any) => {
     event.preventDefault();
-    const image = document.querySelector("#selectedImage") as HTMLImageElement | null;
+    let image: HTMLImageElement | null =
+      document.querySelector("#selectedImage");
     if (image) {
       image.src = "";
       image.style.removeProperty("margin-top");
@@ -70,79 +84,112 @@ const ImageViewer: React.FC<ImageViewerProps> = (props) => {
       image.style.removeProperty("width");
       image.style.removeProperty("height");
     }
-    setIsShowImage(false);
+
+    this.setState({ isShowImage: false });
   };
-
-  const handleZoomIn = () => {
-    const image = document.querySelector("#selectedImage") as HTMLImageElement | null;
-    if (!image || image.style.width === "200vw" || image.style.height === "200vh") return;
-    
-    setZoomIndex((prevZoom) => prevZoom + 1);
-    const newSize = 60 + zoomIndex * 10;
-    if (imageRatio === "horizontal") {
-      image.style.width = `${newSize}vw`;
-    } else {
-      image.style.height = `${newSize}vh`;
-    }
+  handleZoomIn = () => {
+    let image: any = document.querySelector("#selectedImage");
+    if (image.style.width === "200vw" || image.style.height === "200vh") return;
+    this.setState({ zoomIndex: this.state.zoomIndex + 1 }, () => {
+      if (this.state.imageRatio === "horizontal") {
+        image.style.width = `${60 + this.state.zoomIndex * 10}vw`;
+        // image.style.marginTop = `${10 * this.state.zoomIndex}vh`;
+      } else {
+        image.style.height = `${100 + 10 * this.state.zoomIndex}vh`;
+      }
+    });
   };
-
-  const handleZoomOut = () => {
-    const image = document.querySelector("#selectedImage") as HTMLImageElement | null;
-    if (!image || image.style.width === "10vw" || image.style.height === "10vh") return;
-
-    setZoomIndex((prevZoom) => prevZoom - 1);
-    const newSize = 60 + zoomIndex * 10;
-    if (imageRatio === "horizontal") {
-      image.style.width = `${newSize}vw`;
-    } else {
-      image.style.height = `${newSize}vh`;
-    }
+  handleZoomOut = () => {
+    let image: any = document.querySelector("#selectedImage");
+    if (image.style.width === "10vw" || image.style.height === "10vh") return;
+    this.setState({ zoomIndex: this.state.zoomIndex - 1 }, () => {
+      if (this.state.imageRatio === "horizontal") {
+        image.style.width = `${60 + this.state.zoomIndex * 10}vw`;
+      } else {
+        image.style.height = `${100 + 10 * this.state.zoomIndex}vh`;
+      }
+    });
   };
-
-  const handleSave = async () => {
-    const image = document.querySelector("#selectedImage") as HTMLImageElement | null;
-    if (image) {
-      const blob = await fetch(image.src).then((r) => r.blob());
-      window.saveAs(blob, `${new Date().toLocaleDateString()}`);
-    }
+  handleSave = async () => {
+    let image: any = document.querySelector("#selectedImage");
+    let blob = await fetch(image.src).then((r) => r.blob());
+    window.saveAs(blob, `${new Date().toLocaleDateString()}`);
   };
-
-  const handleClockwise = () => {
-    const image = document.querySelector("#selectedImage") as HTMLImageElement | null;
-    setRotateIndex((prevRotate) => prevRotate + 1);
-    if (image) image.style.transform = `rotate(${rotateIndex * 90}deg)`;
+  handleClock = () => {
+    let image: any = document.querySelector("#selectedImage");
+    this.setState({ rotateIndex: this.state.rotateIndex + 1 }, () => {
+      image.style.transform = `rotate(${this.state.rotateIndex * 90}deg)`;
+    });
   };
-
-  const handleCounterClockwise = () => {
-    const image = document.querySelector("#selectedImage") as HTMLImageElement | null;
-    setRotateIndex((prevRotate) => prevRotate - 1);
-    if (image) image.style.transform = `rotate(${rotateIndex * 90}deg)`;
+  handleCounterClock = () => {
+    let image: any = document.querySelector("#selectedImage");
+    this.setState({ rotateIndex: this.state.rotateIndex - 1 }, () => {
+      image.style.transform = `rotate(${this.state.rotateIndex * 90}deg)`;
+    });
   };
-
-  return (
-    <div className="image-preview" style={isShowImage ? {} : { display: "none" }}>
+  render() {
+    return (
       <div
-        className="image-background"
-        style={isShowImage ? { backgroundColor: "rgba(75,75,75,0.3)" } : {}}
-        onClick={hideImage}
-      ></div>
-      <img
-        src=""
-        alt=""
-        className="image"
-        id="selectedImage"
-        style={imageRatio === "horizontal" ? { width: "60vw" } : { height: "100vh" }}
-      />
-      <div className="image-operation">
-        <span className="icon-zoom-in zoom-in-icon" onClick={handleZoomIn}></span>
-        <span className="icon-zoom-out zoom-out-icon" onClick={handleZoomOut}></span>
-        <span className="icon-save save-icon" onClick={handleSave}></span>
-        <span className="icon-clockwise clockwise-icon" onClick={handleClockwise}></span>
-        <span className="icon-counterclockwise counterclockwise-icon" onClick={handleCounterClockwise}></span>
+        className="image-preview"
+        style={this.state.isShowImage ? {} : { display: "none" }}
+      >
+        <div
+          className="image-background"
+          style={
+            this.state.isShowImage
+              ? { backgroundColor: "rgba(75,75,75,0.3)" }
+              : {}
+          }
+          onClick={(event) => {
+            this.hideImage(event);
+          }}
+        ></div>
+        <img
+          src=""
+          alt=""
+          className="image"
+          id="selectedImage"
+          style={
+            this.state.imageRatio === "horizontal"
+              ? { width: "60vw" }
+              : { height: "100vh" }
+          }
+        />
+        <div className="image-operation">
+          <span
+            className="icon-zoom-in zoom-in-icon"
+            onClick={() => {
+              this.handleZoomIn();
+            }}
+          ></span>
+          <span
+            className="icon-zoom-out zoom-out-icon"
+            onClick={() => {
+              this.handleZoomOut();
+            }}
+          ></span>
+          <span
+            className="icon-save save-icon"
+            onClick={() => {
+              this.handleSave();
+            }}
+          ></span>
+          <span
+            className="icon-clockwise clockwise-icon"
+            onClick={() => {
+              this.handleClock();
+            }}
+          ></span>
+          <span
+            className="icon-counterclockwise counterclockwise-icon"
+            onClick={() => {
+              this.handleCounterClock();
+            }}
+          ></span>
+        </div>
       </div>
-    </div>
-  );
-};
+    );
+  }
+}
 
 export default ImageViewer;
-

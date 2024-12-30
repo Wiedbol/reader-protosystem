@@ -1,22 +1,23 @@
-import { useDispatch, useSelector } from "react-redux"
-import { AppDispatch, RootState } from "../../store"
-import { fetchBookmarks, fetchBooks, fetchNotes, handleAbout, handleBackupDialog, handleFeedbackDialog, handleSetting, handleSortDisplay, handleTipDialog } from "../../store/slices";
-import { HeaderProps } from "./interface";
-import { Header } from "./component";
-import React from "react";
-
-interface HeaderContainerProps {
-
-  handleDrag: (isDrag: boolean) => void;
-  handleTip: (tip: string) => void;
-}
-
-const HeaderContainer: React.FC<HeaderContainerProps> = ({
-  handleDrag,
+import { connect } from "react-redux";
+import { withTranslation } from "react-i18next";
+import {
+  handleSortDisplay,
+  handleSetting,
+  handleAbout,
+  handleTipDialog,
   handleTip,
-}) => {
-  const dispatch = useDispatch<AppDispatch>();
-  const state = useSelector((state: RootState) => ({
+  handleBackupDialog,
+  handleFeedbackDialog,
+  handleFetchBooks,
+  handleFetchNotes,
+  handleFetchBookmarks,
+} from "../../store/actions";
+import { stateType } from "../../store";
+import Header from "./component";
+import { handleAdmin } from "../../store/actions/user";
+
+const mapStateToProps = (state: stateType) => {
+  return {
     isSearch: state.manager.isSearch,
     isAboutOpen: state.manager.isAboutOpen,
     bookmarks: state.reader.bookmarks,
@@ -26,24 +27,23 @@ const HeaderContainer: React.FC<HeaderContainerProps> = ({
     notes: state.reader.notes,
 
     isSortDisplay: state.manager.isSortDisplay,
-  }))
-  const actionCreator = {
-    handleSortDisplay: (isSortDisplay: boolean) => dispatch(handleSortDisplay(isSortDisplay)),
-    handleBackupDialog: (isBackup: boolean) => dispatch(handleBackupDialog(isBackup)),
-    handleSetting: (isSettingOpen: boolean) => dispatch(handleSetting(isSettingOpen)),
-    handleAbout: (isAboutOpen: boolean) => dispatch(handleAbout(isAboutOpen)),
-    handleFeedbackDialog: (isFeedbackOpen: boolean) => dispatch(handleFeedbackDialog(isFeedbackOpen)),
-    handleTipDialog: (isTipOpen: boolean) => dispatch(handleTipDialog(isTipOpen)),
-    handleFetchBooks: () => dispatch(fetchBooks()),
-    handleFetchNotes: () => dispatch(fetchNotes()),
-    handleFetchBookmarks: () => dispatch(fetchBookmarks()),
-  }
-  const props: HeaderProps = {
-    ...state,
-    ...actionCreator,
-    handleDrag,
-    handleTip,
-  }
-  return <Header {...props} />
-}
-export default HeaderContainer;
+    isAdmin: state.user.isAdmin,
+  };
+};
+const actionCreator = {
+  handleSortDisplay,
+  handleBackupDialog,
+  handleSetting,
+  handleAbout,
+  handleFeedbackDialog,
+  handleTipDialog,
+  handleTip,
+  handleFetchBooks,
+  handleFetchNotes,
+  handleFetchBookmarks,
+
+};
+export default connect(
+  mapStateToProps,
+  actionCreator
+)(withTranslation()(Header as any) as any);

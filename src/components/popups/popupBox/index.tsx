@@ -1,28 +1,18 @@
-import { useDispatch, useSelector } from "react-redux"
-import { AppDispatch, RootState } from "../../../store"
-import { handleChangeDirection, handleMenuMode, handleNoteKey, handleOpenMenu, handleRenderNoteFunc, handleSelection } from "../../../store/slices";
-import { PopupBoxProps } from "./interface";
-import React from "react";
+import {
+  handleSelection,
+  handleOpenMenu,
+  handleMenuMode,
+  handleChangeDirection,
+  handleNoteKey,
+  handleRenderNoteFunc,
+} from "../../../store/actions";
+import { connect } from "react-redux";
+import { stateType } from "../../../store";
 import PopupBox from "./component";
-import Note from "../../../models/Note";
+import { withTranslation } from "react-i18next";
 
-interface PopupBoxContainerProps {
-  digests: Note[];
-  rendition: any;
-  rect: any;
-  chapterDocIndex: number;
-  chapter: string;
-}
-
-const PopupBoxContainer: React.FC<PopupBoxContainerProps> = ({
-  digests,
-  rendition,
-  rect,
-  chapterDocIndex,
-  chapter,
-}) => {
-  const dispatch = useDispatch<AppDispatch>();
-  const state = useSelector((state: RootState) => ({
+const mapStateToProps = (state: stateType) => {
+  return {
     digests: state.reader.digests,
     notes: state.reader.notes,
     noteKey: state.reader.noteKey,
@@ -31,24 +21,17 @@ const PopupBoxContainer: React.FC<PopupBoxContainerProps> = ({
     menuMode: state.viewArea.menuMode,
     color: state.reader.color,
     isChangeDirection: state.viewArea.isChangeDirection,
-  }))
-  const actionCreator = {
-    handleSelection: (selection: string) => dispatch(handleSelection(selection)),
-    handleOpenMenu: (payload: boolean) => dispatch(handleOpenMenu(payload)),
-    handleMenuMode: (payload: string) => dispatch(handleMenuMode(payload)),
-    handleChangeDirection: (payload: boolean) => dispatch(handleSelection(payload)),
-    handleNoteKey: (payload: string) => dispatch(handleNoteKey(payload)),
-    handleRenderNoteFunc: (payload: () => void) => dispatch(handleRenderNoteFunc(payload)),
-  }
-  const props: PopupBoxProps = {
-    ...state,
-    ...actionCreator,
-    digests,
-    rendition,
-    rect,
-    chapterDocIndex,
-    chapter,
-  }
-  return <PopupBox {...props} />
-}
-export default PopupBoxContainer;
+  };
+};
+const actionCreator = {
+  handleSelection,
+  handleOpenMenu,
+  handleMenuMode,
+  handleChangeDirection,
+  handleNoteKey,
+  handleRenderNoteFunc,
+};
+export default connect(
+  mapStateToProps,
+  actionCreator
+)(withTranslation()(PopupBox as any) as any);

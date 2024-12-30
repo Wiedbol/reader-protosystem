@@ -1,8 +1,8 @@
-
 import BookModel from "../../../models/Book";
 import NoteModel from "../../../models/Note";
 import BookmarkModel from "../../../models/Bookmark";
-export interface BookListProps {
+import { RouteComponentProps } from "react-router";
+export interface BookListProps extends RouteComponentProps<any> {
   books: BookModel[];
   mode: string;
   shelfIndex: number;
@@ -23,4 +23,11 @@ export interface BookListProps {
   handleFetchBooks: () => void;
   handleShelfIndex: (index: number) => void;
   handleDeleteDialog: (isShow: boolean) => void;
+  t: (title: string) => string;
+}
+export interface BookListState {
+  favoriteBooks: number;
+  isHideShelfBook: boolean;
+  isOpenDelete: boolean;
+  isRefreshing: boolean;
 }

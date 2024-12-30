@@ -1,99 +1,118 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import ShelfUtil from "../../utils/readUtils/shelfUtil";
-import { ShelfSelectorProps } from "./interface";
+import { Trans } from "react-i18next";
+import { ShelfSelectorProps, ShelfSelectorState } from "./interface";
+
 import DeletePopup from "../dialogs/deletePopup";
+import { withRouter } from "react-router-dom";
 import { backup } from "../../utils/syncUtils/backupUtil";
 import { isElectron } from "react-device-detect";
 declare var window: any;
+class ShelfSelector extends React.Component<
+  ShelfSelectorProps,
+  ShelfSelectorState
+> {
+  constructor(props: ShelfSelectorProps) {
+    super(props);
+    this.state = {
+      shelfIndex: 0,
+      isOpenDelete: false,
+    };
+  }
 
-const ShelfSelector: React.FC<ShelfSelectorProps> = (props) => {
-  const [shelfIndex, setShelfIndex] = useState(0);
-  const [isOpenDelete, setIsOpenDelete] = useState(false);
+  handleShelfItem = (event: any) => {
+    let index = event.target.value.split(",")[1];
+    this.setState({ shelfIndex: index });
+    this.props.handleShelfIndex(index);
+    if (index > 0) {
+      this.props.handleMode("shelf");
+    } else {
+      this.props.handleMode("home");
+    }
+  };
+  handleDeleteShelf = () => {
+    if (this.state.shelfIndex < 1) return;
+    let shelfTitles = Object.keys(ShelfUtil.getShelf());
+    let currentShelfTitle = shelfTitles[this.state.shelfIndex];
+    ShelfUtil.removeShelf(currentShelfTitle);
+    this.setState({ shelfIndex: 0 }, () => {
+      this.props.handleShelfIndex(0);
+      this.props.handleMode("shelf");
+    });
+  };
+  handleDeletePopup = (isOpenDelete: boolean) => {
+    this.setState({ isOpenDelete });
+  };
+  renderShelfList = () => {
+    let shelfList = ShelfUtil.getShelf();
+    let shelfTitle = Object.keys(shelfList);
 
-  // Effect hook to handle the backup in Electron
-  useEffect(() => {
+    return shelfTitle.map((item, index) => {
+      return (
+        <option
+          value={[item, index.toString()]}
+          key={index}
+          className="add-dialog-shelf-list-option"
+          selected={this.props.shelfIndex === index ? true : false}
+        >
+          {this.props.t(item === "New" ? "Books" : item)}
+        </option>
+      );
+    });
+  };
+
+  render() {
     if (isElectron) {
-      window.localforage.getItem(props.books[0].key).then((result) => {
+      window.localforage.getItem(this.props.books[0].key).then((result) => {
         if (result) {
-          backup(props.books, props.notes, props.bookmarks, false);
+          backup(
+            this.props.books,
+            this.props.notes,
+            this.props.bookmarks,
+            false
+          );
         }
       });
     }
-  }, [props.books, props.notes, props.bookmarks]);
+    const deletePopupProps = {
+      mode: "shelf",
+      name: Object.keys(ShelfUtil.getShelf())[this.state.shelfIndex],
+      title: "Delete this shelf",
+      description: "This action will clear and remove this shelf",
+      handleDeletePopup: this.handleDeletePopup,
+      handleDeleteOpearion: this.handleDeleteShelf,
+    };
 
-  const handleShelfItem = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    const index = event.target.value.split(",")[1];
-    setShelfIndex(Number(index));
-    props.handleShelfIndex(Number(index));
-    if (Number(index) > 0) {
-      props.handleMode("shelf");
-    } else {
-      props.handleMode("home");
-    }
-  };
+    return (
+      <>
+        {this.state.isOpenDelete && <DeletePopup {...deletePopupProps} />}
+        <div className="booklist-shelf-container">
+          <p
+            className="general-setting-title"
+            style={{ float: "left", height: "100%" }}
+          >
+            <Trans>Shelf</Trans>
+          </p>
+          <select
+            className="booklist-shelf-list"
+            onChange={(event: React.ChangeEvent<HTMLSelectElement>) => {
+              this.handleShelfItem(event);
+            }}
+          >
+            {this.renderShelfList()}
+          </select>
+          {this.state.shelfIndex > 0 ? (
+            <span
+              className="icon-trash delete-shelf-icon"
+              onClick={() => {
+                this.handleDeletePopup(true);
+              }}
+            ></span>
+          ) : null}
+        </div>
+      </>
+    );
+  }
+}
 
-  const handleDeleteShelf = () => {
-    if (shelfIndex < 1) return;
-    const shelfTitles = Object.keys(ShelfUtil.getShelf());
-    const currentShelfTitle = shelfTitles[shelfIndex];
-    ShelfUtil.removeShelf(currentShelfTitle);
-    setShelfIndex(0);
-    props.handleShelfIndex(0);
-    props.handleMode("shelf");
-  };
-
-  const handleDeletePopup = (isOpen: boolean) => {
-    setIsOpenDelete(isOpen);
-  };
-
-  const renderShelfList = () => {
-    const shelfList = ShelfUtil.getShelf();
-    const shelfTitle = Object.keys(shelfList);
-
-    return shelfTitle.map((item, index) => (
-      <option
-        value={[item, index.toString()]}
-        key={index}
-        className="add-dialog-shelf-list-option"
-        selected={props.shelfIndex === index}
-      >
-        {item === "New" ? "Books" : item}
-      </option>
-    ));
-  };
-
-  const deletePopupProps = {
-    mode: "shelf",
-    name: Object.keys(ShelfUtil.getShelf())[shelfIndex],
-    title: "Delete this shelf",
-    description: "This action will clear and remove this shelf",
-    handleDeletePopup,
-    handleDeleteOpearion: handleDeleteShelf,
-  };
-
-  return (
-    <>
-      {isOpenDelete && <DeletePopup {...deletePopupProps} />}
-      <div className="booklist-shelf-container">
-        <p className="general-setting-title" style={{ float: "left", height: "100%" }}>
-        书架
-        </p>
-        <select
-          className="booklist-shelf-list"
-          onChange={handleShelfItem}
-        >
-          {renderShelfList()}
-        </select>
-        {shelfIndex > 0 && (
-          <span
-            className="icon-trash delete-shelf-icon"
-            onClick={() => handleDeletePopup(true)}
-          ></span>
-        )}
-      </div>
-    </>
-  );
-};
-
-export default ShelfSelector;
-
+export default withRouter(ShelfSelector as any);

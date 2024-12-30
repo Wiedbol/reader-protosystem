@@ -1,28 +1,23 @@
 export const sideMenu = [
   {
     name: "Books",
-    icon: "home-line",
+    icon: "bookshelf",
     mode: "home",
   },
   {
     name: "Favorites",
-    icon: "heart",
+    icon: "love",
     mode: "favorite",
   },
 
   {
     name: "Notes",
-    icon: "idea-line",
+    icon: "edit",
     mode: "note",
   },
   {
     name: "Highlights",
-    icon: "highlight-line",
+    icon: "message",
     mode: "digest",
-  },
-  {
-    name: "Deleted Books",
-    icon: "trash-line",
-    mode: "trash",
   },
 ];

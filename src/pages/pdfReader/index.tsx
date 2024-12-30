@@ -1,43 +1,41 @@
-import React from 'react'
-import { useDispatch, useSelector } from 'react-redux'
-import { AppDispatch, RootState } from '../../store'
-import { fetchBookmarks, fetchBooks, fetchNotes, handleActionDialog, handleMenuMode, handleNoteKey, handleOpenMenu, handleReadingBook, handleReadingState } from '../../store/slices'
-import Book from '../../models/Book'
-import { ViewerProps } from './interface'
-import Viewer from './cmponent'
+import { connect } from "react-redux";
+import {
+  handleActionDialog,
+  handleReadingState,
+  handleReadingBook,
+  handleFetchNotes,
+  handleFetchBookmarks,
+  handleFetchBooks,
+  handleMenuMode,
+  handleNoteKey,
+  handleOpenMenu,
+} from "../../store/actions";
+import Viewer from "./component";
+import { stateType } from "../../store";
+import { withTranslation } from "react-i18next";
 
-interface PdfReaderContainerProps {
-  book: Book
-}
-
-const PdfReaderContainer: React.FC<PdfReaderContainerProps> = ({
-  book,
-}) => {
-  const dispatch = useDispatch<AppDispatch>()
-  const state = useSelector((state: RootState) => ({
+const mapStateToProps = (state: stateType) => {
+  return {
     isOpenActionDialog: state.book.isOpenActionDialog,
     currentBook: state.book.currentBook,
     isReading: state.book.isReading,
     isOpenMenu: state.viewArea.isOpenMenu,
     menuMode: state.viewArea.menuMode,
     notes: state.reader.notes,
-  }))
-  const actionCreator = {
-    handleReadingState: (payload: boolean) => dispatch(handleReadingState(payload)),
-    handleReadingBook: (payload: Book) => dispatch(handleReadingBook(payload)),
-    handleActionDialog: (payload: boolean) => dispatch(handleActionDialog(payload)),
-    handleFetchNotes: () => dispatch(fetchNotes()),
-    handleFetchBookmarks: () => dispatch(fetchBookmarks()),
-    handleFetchBooks: () => dispatch(fetchBooks()),
-    handleMenuMode: (payload: string) => dispatch(handleMenuMode(payload)),
-    handleNoteKey: (payload: string) => dispatch(handleNoteKey(payload)),
-    handleOpenMenu: (payload: boolean) => dispatch(handleOpenMenu(payload)),
-  }
-  const props: ViewerProps = {
-    ...state,
-    ...actionCreator,
-    book,
-  }
-  return <Viewer {...props} />
-}
-export default PdfReaderContainer
+  };
+};
+const actionCreator = {
+  handleReadingState,
+  handleReadingBook,
+  handleActionDialog,
+  handleFetchNotes,
+  handleFetchBookmarks,
+  handleFetchBooks,
+  handleMenuMode,
+  handleNoteKey,
+  handleOpenMenu,
+};
+export default connect(
+  mapStateToProps,
+  actionCreator
+)(withTranslation()(Viewer as any) as any);

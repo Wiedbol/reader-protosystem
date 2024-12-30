@@ -1,3 +1,12 @@
-export interface RedirectProps {
+import { RouteComponentProps } from "react-router";
+export interface RedirectProps extends RouteComponentProps<any> {
   handleLoadingDialog: (isShowLoading: boolean) => void;
+  t: (title: string) => string;
+}
+
+export interface RedirectState {
+  isAuthed: boolean;
+  isError: boolean;
+  isCopied: boolean;
+  token: string;
 }

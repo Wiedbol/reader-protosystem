@@ -1,123 +1,133 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import Lottie from 'react-lottie';
-import copy from 'copy-text-to-clipboard';
-import toast, { Toaster } from 'react-hot-toast';
-import { getParamsFromUrl } from '../../utils/syncUtils/common';
-import StorageUtil from '../../utils/serviceUtils/storageUtil';
-import animationSuccess from '../../assets/lotties/success.json';
-import './manager.css';
-import { RedirectProps } from './interface';
-
-
+import React from "react";
+import "./manager.css";
+import { RedirectProps, RedirectState } from "./interface";
+import { Trans } from "react-i18next";
+import { getParamsFromUrl } from "../../utils/syncUtils/common";
+import copy from "copy-text-to-clipboard";
+import { withRouter } from "react-router-dom";
+import Lottie from "react-lottie";
+import animationSuccess from "../../assets/lotties/success.json";
+import toast, { Toaster } from "react-hot-toast";
+import StorageUtil from "../../utils/serviceUtils/storageUtil";
 const successOptions = {
   loop: false,
   autoplay: true,
   animationData: animationSuccess,
   rendererSettings: {
-    preserveAspectRatio: 'xMidYMid slice',
+    preserveAspectRatio: "xMidYMid slice",
   },
 };
 
-const Redirect: React.FC<RedirectProps> = ({ handleLoadingDialog }) => {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const [isAuthed, setIsAuthed] = useState(false);
-  const [isError, setIsError] = useState(false);
-  const [isCopied, setIsCopied] = useState(false);
-  const [token, setToken] = useState('');
-
-  const handleFinish = useCallback(() => {
-    handleLoadingDialog(false);
-    alert('数据恢复成功');
-  }, [handleLoadingDialog]);
-
-  const showMessage = useCallback((message: string) => {
-    toast(message);
-  }, []);
-
-  useEffect(() => {
-    const url = document.location.href;
-    if (location.hash === '#/' && url.indexOf('code') === -1) {
-      navigate('/manager/home');
+class Redirect extends React.Component<RedirectProps, RedirectState> {
+  timer!: NodeJS.Timeout;
+  constructor(props: RedirectProps) {
+    super(props);
+    this.state = {
+      isAuthed: false,
+      isError: false,
+      isCopied: false,
+      token: "",
+    };
+  }
+  handleFinish = () => {
+    this.props.handleLoadingDialog(false);
+    alert("数据恢复成功");
+  };
+  showMessage = (message: string) => {
+    toast(this.props.t(message));
+  };
+  componentDidMount() {
+    let url = document.location.href;
+    if (document.location.hash === "#/" && url.indexOf("code") === -1) {
+      this.props.history.push("/login");
     }
-    if (url.indexOf('error') > -1) {
-      setIsError(true);
-      return;
+    if (url.indexOf("error") > -1) {
+      this.setState({ isError: true });
+      return false;
     }
-    if (url.indexOf('code') > -1) {
-      const params: any = getParamsFromUrl();
-      setToken(params.code);
-      setIsAuthed(true);
-      return;
+    if (url.indexOf("code") > -1) {
+      let params: any = getParamsFromUrl();
+      this.setState({ token: params.code });
+      this.setState({ isAuthed: true });
+      return false;
     }
-    if (url.indexOf('access_token') > -1) {
-      const params: any = getParamsFromUrl();
-      setToken(params.access_token);
-      setIsAuthed(true);
-      return;
+    if (url.indexOf("access_token") > -1) {
+      let params: any = getParamsFromUrl();
+      this.setState({ token: params.access_token });
+      this.setState({ isAuthed: true });
+      return false;
     }
-  }, [navigate]);
+  }
 
-  const handleCopyToken = useCallback(() => {
-    copy(token);
-    setIsCopied(true);
-  }, [token]);
+  render() {
+    if (this.state.isError || this.state.isAuthed) {
+      return (
+        <div className="backup-page-finish-container">
+          <div className="backup-page-finish">
+            {this.state.isAuthed ? (
+              <Lottie options={successOptions} height={80} width={80} />
+            ) : (
+              <span className="icon-close auth-page-close-icon"></span>
+            )}
 
-  if (isError || isAuthed) {
-    return (
-      <div className="backup-page-finish-container">
-        <div className="backup-page-finish">
-          {isAuthed ? (
-            <Lottie options={successOptions} height={80} width={80} />
-          ) : (
-            <span className="icon-close auth-page-close-icon"></span>
-          )}
-
-          <div className="backup-page-finish-text">
-            {isAuthed ? ('授权成功') : ('授权失败')}
-          </div>
-          {isAuthed && (
-            <div
-              className="token-dialog-token-text"
-              onClick={handleCopyToken}
-            >
-              {isCopied ? ('已复制') : ('复制令牌')}
+            <div className="backup-page-finish-text">
+              <Trans>
+                {this.state.isAuthed
+                  ? "Authorisation successful"
+                  : "Authorisation failed"}
+              </Trans>
             </div>
-          )}
+            {this.state.isAuthed ? (
+              <div
+                className="token-dialog-token-text"
+                onClick={() => {
+                  copy(this.state.token);
+                  this.setState({ isCopied: true });
+                }}
+              >
+                {this.state.isCopied ? (
+                  <Trans>Copied</Trans>
+                ) : (
+                  <Trans>Copy token</Trans>
+                )}
+              </div>
+            ) : null}
+          </div>
         </div>
+      );
+    }
+
+    return (
+      <div className="manager">
+        <div className="empty-page-info-container" style={{ margin: 100 }}>
+          <div className="empty-page-info-main">
+            <Trans>It seems like you're lost</Trans>
+          </div>
+          <div
+            className="empty-page-info-sub"
+            onClick={() => {
+              this.props.history.push("/login");
+            }}
+            style={{ marginTop: 10, cursor: "pointer" }}
+          >
+            <Trans>Return to home</Trans>
+          </div>
+        </div>
+        <img
+          src={
+            StorageUtil.getReaderConfig("appSkin") === "night" ||
+            (StorageUtil.getReaderConfig("appSkin") === "system" &&
+              StorageUtil.getReaderConfig("isOSNight") === "yes")
+              ? "./assets/empty_light.svg"
+              : "./assets/empty.svg"
+          }
+          alt=""
+          className="empty-page-illustration"
+        />
+        <Toaster />
       </div>
     );
   }
+}
 
-  return (
-    <div className="manager">
-      <div className="empty-page-info-container" style={{ margin: 100 }}>
-        <div className="empty-page-info-main">
-          {("你好像迷路了")}
-        </div>
-        <div
-          className="empty-page-info-sub"
-          onClick={() => navigate('/manager/home')}
-          style={{ marginTop: 10, cursor: 'pointer' }}
-        >
-          {('回到首页')}
-        </div>
-      </div>
-      <img
-        src={
-          StorageUtil.getReaderConfig('appSkin') === 'night' ||
-          (StorageUtil.getReaderConfig('appSkin') === 'system' &&
-            StorageUtil.getReaderConfig('isOSNight') === 'yes')
-            ? './assets/empty_light.svg'
-            : './assets/empty.svg'
-        }
-        alt=""
-        className="empty-page-illustration"
-      />
-      <Toaster />
-    </div>
-  );
-};
-
-export default Redirect;
+export default withRouter(Redirect as any);

@@ -1,32 +1,19 @@
-import { useDispatch, useSelector } from "react-redux"
-import { AppDispatch, RootState } from "../../store"
-import { handleCurrentChapter, handleCurrentChapterIndex } from "../../store/slices";
-import { BackgroundProps } from "./interface";
+import { connect } from "react-redux";
+import { stateType } from "../../store";
 import Background from "./component";
-import React from "react";
-
-interface PageWidgetContainerProps {
-
-}
-
-const PageWidgetContainer: React.FC<PageWidgetContainerProps> = () => {
-  const dispatch = useDispatch<AppDispatch>();
-  const state = useSelector((state: RootState) => ({
+import {
+  handleCurrentChapter,
+  handleCurrentChapterIndex,
+} from "../../store/actions";
+const mapStateToProps = (state: stateType) => {
+  return {
     currentBook: state.book.currentBook,
     locations: state.progressPanel.locations,
     currentChapter: state.reader.currentChapter,
     currentChapterIndex: state.reader.currentChapterIndex,
     htmlBook: state.reader.htmlBook,
     isShowBookmark: state.viewArea.isShowBookmark,
-  }))
-  const actionCreator = {
-    handleCurrentChapter: (payload: string) => dispatch(handleCurrentChapter(payload)),
-    handleCurrentChapterIndex: (payload: number) => dispatch(handleCurrentChapterIndex(payload)),
-  }
-  const props: BackgroundProps = {
-    ...state,
-    ...actionCreator,
-  }
-  return <Background {...props} />
-}
-export default PageWidgetContainer;
+  };
+};
+const actionCreator = { handleCurrentChapter, handleCurrentChapterIndex };
+export default connect(mapStateToProps, actionCreator)(Background as any);

@@ -1,96 +1,103 @@
-import React, { useState, useCallback } from 'react';
-import toast from 'react-hot-toast';
-import TagUtil from '../../utils/readUtils/tagUtil';
-import DeletePopup from '../dialogs/deletePopup';
-import './deleteIcon.css';
-import { DeleteIconProps } from './interface';
+import React from "react";
+import "./deleteIcon.css";
+import { DeleteIconProps, DeleteIconStates } from "./interface";
+import TagUtil from "../../utils/readUtils/tagUtil";
+import DeletePopup from "../dialogs/deletePopup";
+import toast from "react-hot-toast";
 declare var window: any;
+class DeleteIcon extends React.Component<DeleteIconProps, DeleteIconStates> {
+  constructor(props: DeleteIconProps) {
+    super(props);
+    this.state = {
+      deleteIndex: -1,
+      isOpenDelete: false,
+    };
+  }
 
-const DeleteIcon: React.FC<DeleteIconProps> = ({
-  mode,
-  itemKey,
-  tagName,
-  index,
-  notes = [],
-  bookmarks = [],
-  handleFetchNotes,
-  handleFetchBookmarks,
-  handleChangeTag,
-}) => {
-  const [isOpenDelete, setIsOpenDelete] = useState(false);
-
-  const handleDelete = useCallback(() => {
-    let deleteItems = mode === 'notes' ? notes : mode === 'tags' ? TagUtil.getAllTags() : bookmarks;
-    let deleteFunc = mode === 'notes' ? handleFetchNotes : handleFetchBookmarks;
-
-    if (mode === 'tags') {
-      TagUtil.clear(tagName!);
-      handleDeleteTagFromNote(tagName!);
-      return;
-    }
-
-    const updatedItems = deleteItems.filter((item: any) => item.key !== itemKey);
-
-    if (updatedItems.length === 0) {
-      window.localforage.removeItem(mode)
-        .then(() => {
-          deleteFunc?.();
-          toast.success('删除成功');
-        })
-        .catch(() => {
-          console.log('delete failed');
-        });
-    } else {
-      window.localforage.setItem(mode, updatedItems)
-        .then(() => {
-          deleteFunc?.();
-          toast.success('删除成功');
-        })
-        .catch(() => {
-          console.log('modify failed');
-        });
-    }
-  }, [mode, itemKey, tagName, notes, bookmarks, handleFetchNotes, handleFetchBookmarks]);
-
-  const handleDeleteTagFromNote = useCallback((tagName: string) => {
-    const noteList = notes.map((item) => ({
-      ...item,
-      tag: item.tag.filter((subitem: string) => subitem !== tagName),
-    }));
-
-    window.localforage.setItem('notes', noteList).then(() => {
-      handleFetchNotes?.();
+  handleDelete = () => {
+    let deleteItems =
+      this.props.mode === "notes"
+        ? this.props.notes
+        : this.props.mode === "tags"
+        ? TagUtil.getAllTags()
+        : this.props.bookmarks;
+    let deleteFunc =
+      this.props.mode === "notes"
+        ? this.props.handleFetchNotes
+        : this.props.handleFetchBookmarks;
+    deleteItems.forEach((item: any, index: number) => {
+      if (this.props.mode === "tags") {
+        item === this.props.tagName && TagUtil.clear(item);
+        this.handleDeleteTagFromNote(item);
+        return;
+      }
+      if (item.key === this.props.itemKey) {
+        deleteItems.splice(index, 1);
+        if (deleteItems.length === 0) {
+          window.localforage
+            .removeItem(this.props.mode)
+            .then(() => {
+              deleteFunc();
+              toast.success(this.props.t("Deletion successful"));
+            })
+            .catch(() => {
+              console.log("delete failed");
+            });
+        } else {
+          window.localforage
+            .setItem(this.props.mode, deleteItems)
+            .then(() => {
+              deleteFunc();
+              toast.success(this.props.t("Deletion successful"));
+            })
+            .catch(() => {
+              console.log("modify failed");
+            });
+        }
+      }
     });
-  }, [notes, handleFetchNotes]);
-
-  const handleDeletePopup = useCallback((isOpen: boolean) => {
-    setIsOpenDelete(isOpen);
-    if (!isOpen && handleChangeTag && typeof index === 'number') {
-      handleChangeTag(index);
-    }
-  }, [handleChangeTag, index]);
-
-  const deletePopupProps = {
-    name: tagName,
-    title: 'Delete this tag',
-    description: 'This action will clear and remove this tag',
-    handleDeletePopup,
-    handleDeleteOperation: handleDelete,
   };
-
-  return (
-    <>
-      {isOpenDelete && <DeletePopup {...deletePopupProps} />}
-      <div
-        className="delete-digest-button"
-        onClick={() => {
-          mode === 'tags' ? handleDeletePopup(true) : handleDelete();
-        }}
-      >
-        <span className="icon-close delete-digest-icon"></span>
-      </div>
-    </>
-  );
-};
+  handleDeleteTagFromNote = (tagName: string) => {
+    let noteList = this.props.notes.map((item) => {
+      return {
+        ...item,
+        tag: item.tag.filter((subitem) => subitem !== tagName),
+      };
+    });
+    window.localforage.setItem("notes", noteList).then(() => {
+      this.props.handleFetchNotes();
+    });
+  };
+  handleDeletePopup = (isOpenDelete: boolean) => {
+    this.setState({ isOpenDelete });
+    if (!isOpenDelete) {
+      this.props.handleChangeTag(this.props.index);
+    }
+  };
+  render() {
+    const deletePopupProps = {
+      name: this.props.tagName,
+      title: "Delete this tag",
+      description: "This action will clear and remove this tag",
+      handleDeletePopup: this.handleDeletePopup,
+      handleDeleteOpearion: this.handleDelete,
+    };
+    return (
+      <>
+        {this.state.isOpenDelete && <DeletePopup {...deletePopupProps} />}
+        <div
+          className="delete-digest-button"
+          onClick={() => {
+            this.props.mode === "tags"
+              ? this.handleDeletePopup(true)
+              : this.handleDelete();
+          }}
+        >
+          <span className="icon-close delete-digest-icon"></span>
+        </div>
+      </>
+    );
+  }
+}
 
 export default DeleteIcon;

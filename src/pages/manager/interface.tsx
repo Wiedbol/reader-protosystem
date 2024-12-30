@@ -1,7 +1,8 @@
-import BookModel from "../../models/Book"
-import NoteModel from "../../models/Note"
-import BookmarkModel from "../../models/Bookmark"
-export interface ManagerProps {
+import BookModel from "../../models/Book";
+import NoteModel from "../../models/Note";
+import BookmarkModel from "../../models/Bookmark";
+import { RouteComponentProps } from "react-router";
+export interface ManagerProps extends RouteComponentProps<any> {
   books: BookModel[];
   notes: NoteModel[];
   digests: NoteModel[];
@@ -23,13 +24,13 @@ export interface ManagerProps {
   isShowNew: boolean;
   isOpenFeedbackDialog: boolean;
   dragItem: string;
-
+  isAdmin: boolean;
   handleFetchBooks: () => void;
   handleFetchNotes: () => void;
   handleFetchBookmarks: () => void;
   handleFetchBookSortCode: () => void;
   handleFetchNoteSortCode: () => void;
-  handleFetchViewMode: () => void;
+  handleFetchList: () => void;
   handleEditDialog: (isOpenEditDialog: boolean) => void;
   handleDeleteDialog: (isOpenDeleteDialog: boolean) => void;
   handleAddDialog: (isOpenAddDialog: boolean) => void;
@@ -41,10 +42,11 @@ export interface ManagerProps {
   handleBackupDialog: (isBackup: boolean) => void;
   handleReadingState: (isReading: boolean) => void;
   handleSetting: (isSettingOpen: boolean) => void;
+  t: (title: string) => string;
 }
 
 export interface ManagerState {
-  totleBooks: number;
+  totalBooks: number;
   favoriteBooks: number;
   isAuthed: boolean;
   isError: boolean;

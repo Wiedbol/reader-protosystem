@@ -47,7 +47,6 @@ export const base64ArrayBuffer = (arrayBuffer: ArrayBuffer) => {
   return base64;
 };
 
-/*
 export const checkDeveloperUpdate = async () => {
   let res = await axios.get("https://api.960960.xyz/api/update_dev");
   return res.data;
@@ -77,7 +76,6 @@ export const checkStableUpdate = async () => {
   );
   return res.data.log;
 };
-*/
 export const scrollContents = (chapterTitle: string, chapterHref: string) => {
   if (!chapterHref) return;
 

@@ -154,10 +154,11 @@ class BookUtil {
   }
   static async RedirectBook(
     book: BookModel,
+    t: (string) => string,
     history: any
   ) {
     if (!(await this.isBookExist(book.key, book.path))) {
-      toast.error("书籍不存在");
+      toast.error(t("Book not exist"));
       return;
     }
     let ref = book.format.toLowerCase();
@@ -286,6 +287,92 @@ class BookUtil {
     }
     return rendition;
   };
+  static openBookDetailsWindow(book: BookModel) {
+    // 创建一个新的窗口
+    const detailsWindow = window.open('', '_blank');
+        
+    // 设置窗口的标题
+    detailsWindow.document.title = `Book Details - ${book.name}`;
+        
+    // 创建并设置窗口的内容
+    const content = `
+        <html>
+        <head>
+          <meta charset="UTF-8">
+          <title>Book Details - ${book.name}</title>
+        </head>
+          <head>
+            <style>
+              body {
+                font-family: Arial, sans-serif;
+                margin: 0;
+                padding: 20px;
+                background-color: #f4f4f4;
+              }
+              .container {
+                display: flex;
+                max-width: 1000px;
+                margin: auto;
+                background: white;
+                padding: 20px;
+                border-radius: 8px;
+                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+              }
+              .book-info {
+                flex: 1;
+                padding: 20px;
+              }
+              .book-cover {
+                width: auto;
+                height: auto;
+                border-radius: 4px;
+                margin-right: 20px;
+              }
+              h1 {
+                color: #333;
+                margin-top: 0;
+              }
+              p {
+                color: #666;
+              }
+              .button {
+                display: inline-block;
+                padding: 10px 15px;
+                margin-top: 10px;
+                color: #fff;
+                background-color: #007bff;
+                text-decoration: none;
+                border-radius: 5px;
+              }
+              .button:hover {
+                background-color: #0056b3;
+              }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <img src="${book.cover}" alt="Book Cover" class="book-cover" />
+              <div class="book-info">
+                <h1>${book.name}</h1>
+                <p><strong>作者:</strong> ${book.author}</p>
+                <p><strong>出版商:</strong> ${book.publisher}</p>
+                <p><strong>描述:</strong> ${book.description}</p>
+                <p><strong>格式:</strong> ${book.format}</p>
+                <p><strong>大小:</strong> ${book.size} 字节</p>
+                <p><strong>页数:</strong> ${book.page}</p>
+                <p><strong>路径:</strong> ${book.path}</p>
+                <p><strong>字符集:</strong> ${book.charset}</p>
+                
+              </div>
+            </div>
+          </body>
+        </html>
+      `;
+        
+    // 将内容写入新窗口
+    detailsWindow.document.write(content);
+    detailsWindow.document.close();
+  }
   static generateBook(
     bookName: string,
     extension: string,

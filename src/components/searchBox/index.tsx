@@ -1,29 +1,10 @@
-import React from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { AppDispatch, RootState } from "../../store";
-import { handleSearch, handleSearchResults } from "../../store/slices";
+import { connect } from "react-redux";
+import { handleSearchResults, handleSearch } from "../../store/actions";
+import { stateType } from "../../store";
+import { withTranslation } from "react-i18next";
 import SearchBox from "./component";
-import type { SearchBoxProps } from "./interface";
-
-interface SearchBoxContainerProps {
-  isNavSearch: boolean;
-  mode: string;
-  width: string;
-  height: string;
-  handleNavSearchState: (state: string) => void;
-  handleSearchList: (searchList: any) => void;
-}
-
-const SearchBoxContainer: React.FC<SearchBoxContainerProps> = ({
-  isNavSearch,
-  mode,
-  width,
-  height,
-  handleNavSearchState,
-  handleSearchList,
-}) => {
-  const dispatch = useDispatch<AppDispatch>();
-  const state = useSelector((state: RootState) => ({
+const mapStateToProps = (state: stateType) => {
+  return {
     books: state.manager.books,
     notes: state.reader.notes,
     htmlBook: state.reader.htmlBook,
@@ -33,26 +14,13 @@ const SearchBoxContainer: React.FC<SearchBoxContainerProps> = ({
     currentBook: state.book.currentBook,
     tabMode: state.sidebar.mode,
     shelfIndex: state.sidebar.shelfIndex,
-  }));
-
-  const actionCreators = {
-    handleSearchResults: (result: number[]) => dispatch(handleSearchResults(result)),
-    handleSearch: (isSearch: boolean) => dispatch(handleSearch(isSearch)),
-    
   };
-
-  const props: SearchBoxProps = {
-    ...state,
-    ...actionCreators,
-    isNavSearch,
-    mode,
-    width,
-    height,
-    handleNavSearchState,
-    handleSearchList,
-  };
-
-  return <SearchBox {...props} />;
 };
-
-export default SearchBoxContainer;
+const actionCreator = {
+  handleSearchResults,
+  handleSearch,
+};
+export default connect(
+  mapStateToProps,
+  actionCreator
+)(withTranslation()(SearchBox as any) as any);

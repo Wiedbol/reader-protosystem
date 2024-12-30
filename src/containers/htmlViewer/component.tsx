@@ -1,109 +1,76 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
-import RecentBooks from '../../utils/readUtils/recordRecent';
-import BookUtil from '../../utils/fileUtils/bookUtil';
-import PopupMenu from '../../components/popups/popupMenu';
-import StorageUtil from '../../utils/serviceUtils/storageUtil';
-import RecordLocation from '../../utils/readUtils/recordLocation';
-import Background from '../../components/background';
-import toast from 'react-hot-toast';
-import StyleUtil from '../../utils/readUtils/styleUtil';
-import './htmlViewer.css';
-import { HtmlMouseEvent } from '../../utils/serviceUtils/mouseEvent';
-import ImageViewer from '../../components/imageViewer';
-import { getIframeDoc } from '../../utils/serviceUtils/docUtil';
-import { tsTransform } from '../../utils/serviceUtils/langUtil';
-import { binicReadingProcess } from '../../utils/serviceUtils/bionicUtil';
-import PopupBox from '../../components/popups/popupBox';
-import { renderHighlighters } from '../../utils/serviceUtils/noteUtil';
-import PageWidget from '../../containers/pageWidget';
-import { scrollContents } from '../../utils/commonUtil';
-import { ViewerProps } from './interface';
+import React from "react";
+import RecentBooks from "../../utils/readUtils/recordRecent";
+import { ViewerProps, ViewerState } from "./interface";
+import { withRouter } from "react-router-dom";
+import BookUtil from "../../utils/fileUtils/bookUtil";
+import PopupMenu from "../../components/popups/popupMenu";
+import StorageUtil from "../../utils/serviceUtils/storageUtil";
+import RecordLocation from "../../utils/readUtils/recordLocation";
+import Background from "../../components/background";
+import toast from "react-hot-toast";
+import StyleUtil from "../../utils/readUtils/styleUtil";
+import "./index.css";
+import { HtmlMouseEvent } from "../../utils/serviceUtils/mouseEvent";
+import ImageViewer from "../../components/imageViewer";
+import { getIframeDoc } from "../../utils/serviceUtils/docUtil";
+import { tsTransform } from "../../utils/serviceUtils/langUtil";
+import { binicReadingProcess } from "../../utils/serviceUtils/bionicUtil";
+import PopupBox from "../../components/popups/popupBox";
+import { renderHighlighters } from "../../utils/serviceUtils/noteUtil";
+import Note from "../../models/Note";
+import PageWidget from "../../containers/pageWidget";
+import { scrollContents } from "../../utils/commonUtil";
 
+declare var window: any;
+let lock = false; //prevent from clicking too fasts
 
+class Viewer extends React.Component<ViewerProps, ViewerState> {
+  lock: boolean;
+  constructor(props: ViewerProps) {
+    super(props);
+    this.state = {
+      cfiRange: null,
+      contents: null,
+      rect: null,
+      key: "",
+      isFirst: true,
+      scale: StorageUtil.getReaderConfig("scale") || 1,
+      chapterTitle:
+        RecordLocation.getHtmlLocation(this.props.currentBook.key)
+          .chapterTitle || "",
+      readerMode: StorageUtil.getReaderConfig("readerMode") || "double",
+      isDisablePopup: StorageUtil.getReaderConfig("isDisablePopup") === "yes",
+      isTouch: StorageUtil.getReaderConfig("isTouch") === "yes",
+      margin: parseInt(StorageUtil.getReaderConfig("margin")) || 0,
+      chapterDocIndex: parseInt(
+        RecordLocation.getHtmlLocation(this.props.currentBook.key)
+          .chapterDocIndex || 0
+      ),
+      pageOffset: "",
+      pageWidth: "",
+      chapter: "",
+      rendition: null,
+    };
+    this.lock = false;
+  }
+  UNSAFE_componentWillMount() {
+    this.props.handleFetchBookmarks();
+    this.props.handleFetchNotes();
+    this.props.handleFetchBooks();
+  }
+  componentDidMount() {
+    window.rangy.init();
+    this.handleRenderBook();
+    //make sure page width is always 12 times, section = Math.floor(element.clientWidth / 12), or text will be blocked
+    this.handlePageWidth();
+    this.props.handleRenderBookFunc(this.handleRenderBook);
 
-const Viewer: React.FC<ViewerProps> = ({
-  currentBook,
-  handleFetchBookmarks,
-  handleFetchNotes,
-  handleFetchBooks,
-  handleRenderBookFunc,
-  handleHtmlBook,
-  handleReadingState,
-  handleNoteKey,
-  handleMenuMode,
-  handleOpenMenu,
-  handleCurrentChapter,
-  handleCurrentChapterIndex,
-  handleFetchPercentage,
-  handleLeaveReader,
-  handleEnterReader,
-  isOpenMenu,
-  menuMode,
-  isShow,
-  htmlBook,
-  notes,
-}) => {
-  const navigate = useNavigate();
-
-  const [cfiRange, setCfiRange] = useState(null);
-  const [contents, setContents] = useState(null);
-  const [rect, setRect] = useState(null);
-  const [key, setKey] = useState('');
-  const [isFirst, setIsFirst] = useState(true);
-  const [scale, setScale] = useState(StorageUtil.getReaderConfig('scale') || 1);
-  const [chapterTitle, setChapterTitle] = useState(
-    RecordLocation.getHtmlLocation(currentBook.key).chapterTitle || ''
-  );
-  const [readerMode, setReaderMode] = useState(
-    StorageUtil.getReaderConfig('readerMode') || 'double'
-  );
-  const [isDisablePopup, setIsDisablePopup] = useState(
-    StorageUtil.getReaderConfig('isDisablePopup') === 'yes'
-  );
-  const [isTouch, setIsTouch] = useState(
-    StorageUtil.getReaderConfig('isTouch') === 'yes'
-  );
-  const [margin, setMargin] = useState(
-    parseInt(StorageUtil.getReaderConfig('margin')) || 0
-  );
-  const [chapterDocIndex, setChapterDocIndex] = useState(
-    parseInt(
-      RecordLocation.getHtmlLocation(currentBook.key).chapterDocIndex || '0'
-    )
-  );
-  const [pageOffset, setPageOffset] = useState('');
-  const [pageWidth, setPageWidth] = useState('');
-  const [chapter, setChapter] = useState('');
-  const [rendition, setRendition] = useState(null);
-
-  let lock = React.useRef<boolean>(false);
-
-  useEffect(() => {
-    handleFetchBookmarks();
-    handleFetchNotes();
-    handleFetchBooks();
-  }, [handleFetchBookmarks, handleFetchNotes, handleFetchBooks]);
-
-  useEffect(() => {
-    // window.rangy.init();
-    handleRenderBook();
-    handlePageWidth();
-    handleRenderBookFunc(handleRenderBook);
-
-    const handleResize = () => {
+    window.addEventListener("resize", () => {
       BookUtil.reloadBooks();
-    };
-
-    window.addEventListener('resize', handleResize);
-
-    return () => {
-      window.removeEventListener('resize', handleResize);
-    };
-  }, []);
-
-  const handlePageWidth = useCallback(() => {
-      const findValidMultiple = (limit: number) => {
+    });
+  }
+  handlePageWidth = () => {
+    const findValidMultiple = (limit: number) => {
       let multiple = limit - (limit % 12);
 
       while (multiple >= 0) {
@@ -119,228 +86,201 @@ const Viewer: React.FC<ViewerProps> = ({
     if (document.body.clientWidth < 570) {
       let width = findValidMultiple(document.body.clientWidth - 72);
 
-      // this.setState({
-        // pageOffset: `calc(50vw - ${width / 2}px)`,
-        // pageWidth: `${width}px`,
-      // });
-      setPageOffset(`calc(50vw - ${width / 2}px)`);
-      setPageWidth(`${width}px`);
-    } else if (readerMode === "scroll") {
-      let width = findValidMultiple(276 * parseFloat(scale) * 2);
-      // this.setState({
-        // pageOffset: `calc(50vw - ${width / 2}px)`,
-        // pageWidth: `${width}px`,
-      // });
-      setPageOffset(`calc(50vw - ${width / 2}px)`);
-      setPageWidth(`${width}px`);
-    } else if (readerMode === "single") {
+      this.setState({
+        pageOffset: `calc(50vw - ${width / 2}px)`,
+        pageWidth: `${width}px`,
+      });
+    } else if (this.state.readerMode === "scroll") {
+      let width = findValidMultiple(276 * parseFloat(this.state.scale) * 2);
+      this.setState({
+        pageOffset: `calc(50vw - ${width / 2}px)`,
+        pageWidth: `${width}px`,
+      });
+    } else if (this.state.readerMode === "single") {
       let width = findValidMultiple(
-        276 * parseFloat(scale) * 2 - 36
+        276 * parseFloat(this.state.scale) * 2 - 36
       );
-      // this.setState({
-      //   pageOffset: `calc(50vw - ${width / 2}px)`,
-      //   pageWidth: `${width}px`,
-      // });
-      setPageOffset(`calc(50vw - ${width / 2}px)`);
-      setPageWidth(`${width}px`);
-    } else if (readerMode === "double") {
+      this.setState({
+        pageOffset: `calc(50vw - ${width / 2}px)`,
+        pageWidth: `${width}px`,
+      });
+    } else if (this.state.readerMode === "double") {
       let width = findValidMultiple(
-        document.body.clientWidth - 2 * margin - 80
+        document.body.clientWidth - 2 * this.state.margin - 80
       );
-      // this.setState({
-      //   pageOffset: `calc(50vw - ${width / 2}px)`,
-      //   pageWidth: `${width}px`,
-      // });
-      setPageOffset(`calc(50vw - ${width / 2}px)`);
-      setPageWidth(`${width}px`);
+      this.setState({
+        pageOffset: `calc(50vw - ${width / 2}px)`,
+        pageWidth: `${width}px`,
+      });
     }
-  }, [readerMode, scale, margin]);
-
-  const handleHighlight = useCallback(
-    (rendition: any) => {
-      if (!notes) return;
-      const highlightersByChapter = notes.filter(
-        (item: any) =>
-          (item.chapter ===
-            rendition.getChapterDoc()[chapterDocIndex].label ||
-            item.chapterIndex === chapterDocIndex) &&
-          item.bookKey === currentBook.key
+  };
+  handleHighlight = (rendition: any) => {
+    let highlighters: any = this.props.notes;
+    if (!highlighters) return;
+    let highlightersByChapter = highlighters.filter((item: Note) => {
+      return (
+        (item.chapter ===
+          rendition.getChapterDoc()[this.state.chapterDocIndex].label ||
+          item.chapterIndex === this.state.chapterDocIndex) &&
+        item.bookKey === this.props.currentBook.key
       );
+    });
 
-      renderHighlighters(
-        highlightersByChapter,
-        currentBook.format,
-        handleNoteClick
-      );
-    },
-    [notes, chapterDocIndex, currentBook.key, currentBook.format]
-  );
-
-  const handleNoteClick = useCallback(
-    (event: Event) => {
-      handleNoteKey((event.target as any).dataset.key);
-      handleMenuMode('note');
-      handleOpenMenu(true);
-    },
-    [handleNoteKey, handleMenuMode, handleOpenMenu]
-  );
-
-  const handleRenderBook = useCallback(async () => {
-    if (lock.current) return;
-    const { key, path, format, name } = currentBook;
-    handleHtmlBook(null);
-    const doc = getIframeDoc();
-    if (doc && rendition) {
-      (rendition as any).removeContent();
+    renderHighlighters(
+      highlightersByChapter,
+      this.props.currentBook.format,
+      this.handleNoteClick
+    );
+  };
+  handleNoteClick = (event: Event) => {
+    this.props.handleNoteKey((event.target as any).dataset.key);
+    this.props.handleMenuMode("note");
+    this.props.handleOpenMenu(true);
+  };
+  handleRenderBook = async () => {
+    if (lock) return;
+    let { key, path, format, name } = this.props.currentBook;
+    this.props.handleHtmlBook(null);
+    let doc = getIframeDoc();
+    if (doc && this.state.rendition) {
+      this.state.rendition.removeContent();
     }
-    const isCacheExist = await BookUtil.isBookExist('cache-' + key, path);
-    BookUtil.fetchBook(isCacheExist ? 'cache-' + key : key, true, path).then(
+    let isCacheExsit = await BookUtil.isBookExist("cache-" + key, path);
+    BookUtil.fetchBook(isCacheExsit ? "cache-" + key : key, true, path).then(
       async (result: any) => {
         if (!result) {
-          toast.error('书籍不存在');
+          toast.error(this.props.t("Book not exsit"));
           return;
         }
-        const newRendition = BookUtil.getRendtion(
+        let rendition = BookUtil.getRendtion(
           result,
-          isCacheExist ? 'CACHE' : format,
-          readerMode,
-          currentBook.charset,
-          StorageUtil.getReaderConfig('isSliding') === 'yes' ? 'sliding' : ''
+          isCacheExsit ? "CACHE" : format,
+          this.state.readerMode,
+          this.props.currentBook.charset,
+          StorageUtil.getReaderConfig("isSliding") === "yes" ? "sliding" : ""
         );
 
-        await newRendition.renderTo(
-          document.getElementsByClassName('html-viewer-page')[0]
+        await rendition.renderTo(
+          document.getElementsByClassName("html-viewer-page")[0]
         );
-        await handleRest(newRendition);
-        handleReadingState(true);
+        await this.handleRest(rendition);
+        this.props.handleReadingState(true);
 
-        RecentBooks.setRecent(currentBook.key);
-        document.title = name + ' - Koodo Reader';
+        RecentBooks.setRecent(this.props.currentBook.key);
+        document.title = name + " - Koodo Reader";
       }
     );
-  }, [currentBook, readerMode, handleHtmlBook, handleReadingState]);
+  };
 
-  const handleRest = useCallback(
-    async (newRendition: any) => {
-        // ... (keep the existing handleRest logic)
-      HtmlMouseEvent(
-        rendition,
-        currentBook.key,
-        readerMode
+  handleRest = async (rendition: any) => {
+    HtmlMouseEvent(
+      rendition,
+      this.props.currentBook.key,
+      this.state.readerMode
+    );
+    let chapters = rendition.getChapter();
+    let chapterDocs = rendition.getChapterDoc();
+    let flattenChapters = rendition.flatChapter(chapters);
+    this.props.handleHtmlBook({
+      key: this.props.currentBook.key,
+      chapters,
+      flattenChapters,
+      rendition: rendition,
+    });
+    this.setState({ rendition });
+
+    StyleUtil.addDefaultCss();
+    tsTransform();
+    binicReadingProcess();
+    // rendition.setStyle(StyleUtil.getCustomCss());
+    let bookLocation: {
+      text: string;
+      count: string;
+      chapterTitle: string;
+      chapterDocIndex: string;
+      chapterHref: string;
+      percentage: string;
+      cfi: string;
+      page: string;
+    } = RecordLocation.getHtmlLocation(this.props.currentBook.key);
+    if (chapterDocs.length > 0) {
+      await rendition.goToPosition(
+        JSON.stringify({
+          text: bookLocation.text || "",
+          chapterTitle: bookLocation.chapterTitle || chapterDocs[0].label,
+          page: bookLocation.page || "",
+          chapterDocIndex: bookLocation.chapterDocIndex || 0,
+          chapterHref: bookLocation.chapterHref || chapterDocs[0].href,
+          count: bookLocation.hasOwnProperty("cfi")
+            ? "ignore"
+            : bookLocation.count || 0,
+          percentage: bookLocation.percentage,
+          cfi: bookLocation.cfi,
+          isFirst: true,
+        })
       );
-      let chapters = (rendition as any).getChapter();
-      let chapterDocs = (rendition as any).getChapterDoc();
-      let flattenChapters = (rendition as any).flatChapter(chapters);
-      handleHtmlBook({
-        key: currentBook.key,
-        chapters,
-        flattenChapters,
-        rendition: rendition,
-      });
-      setRendition(newRendition);
+    }
 
-      StyleUtil.addDefaultCss();
-      tsTransform();
-      binicReadingProcess();
-      // rendition.setStyle(StyleUtil.getCustomCss());
+    rendition.on("rendered", () => {
+      this.handleLocation();
       let bookLocation: {
         text: string;
         count: string;
         chapterTitle: string;
         chapterDocIndex: string;
         chapterHref: string;
-        percentage: string;
-        cfi: string;
-        page: string;
-      } = RecordLocation.getHtmlLocation(currentBook.key);
-      if (chapterDocs.length > 0) {
-        await (rendition as any).goToPosition(
-          JSON.stringify({
-            text: bookLocation.text || "",
-            chapterTitle: bookLocation.chapterTitle || chapterDocs[0].label,
-            page: bookLocation.page || "",
-            chapterDocIndex: bookLocation.chapterDocIndex || 0,
-            chapterHref: bookLocation.chapterHref || chapterDocs[0].href,
-            count: bookLocation.hasOwnProperty("cfi")
-              ? "ignore"
-              : bookLocation.count || 0,
-            percentage: bookLocation.percentage,
-            cfi: bookLocation.cfi,
-            isFirst: true,
-          })
-        );
+      } = RecordLocation.getHtmlLocation(this.props.currentBook.key);
+
+      let chapter =
+        bookLocation.chapterTitle ||
+        (this.props.htmlBook && this.props.htmlBook.flattenChapters[0]
+          ? this.props.htmlBook.flattenChapters[0].label
+          : "Unknown chapter");
+      let chapterDocIndex = 0;
+      if (bookLocation.chapterDocIndex) {
+        chapterDocIndex = parseInt(bookLocation.chapterDocIndex);
+      } else {
+        chapterDocIndex =
+          bookLocation.chapterTitle && this.props.htmlBook
+            ? window._.findLastIndex(
+                this.props.htmlBook.flattenChapters.map((item) => {
+                  item.label = item.label.trim();
+                  return item;
+                }),
+                {
+                  title: bookLocation.chapterTitle.trim(),
+                }
+              )
+            : 0;
       }
-
-      (rendition as any).on("rendered", () => {
-        handleLocation();
-        let bookLocation: {
-          text: string;
-          count: string;
-          chapterTitle: string;
-          chapterDocIndex: string;
-          chapterHref: string;
-        } = RecordLocation.getHtmlLocation(currentBook.key);
-
-        let chapter =
-          bookLocation.chapterTitle ||
-          (htmlBook && htmlBook.flattenChapters[0]
-            ? htmlBook.flattenChapters[0].label
-            : "Unknown chapter");
-        let chapterDocIndex = 0;
-        if (bookLocation.chapterDocIndex) {
-          chapterDocIndex = parseInt(bookLocation.chapterDocIndex);
-        } else {
-          chapterDocIndex =
-            bookLocation.chapterTitle && htmlBook
-              ? (window as any)._.findLastIndex(
-                  htmlBook.flattenChapters.map((item) => {
-                    item.label = item.label.trim();
-                    return item;
-                  }),
-                  {
-                    title: bookLocation.chapterTitle.trim(),
-                  }
-                )
-              : 0;
-        }
-        handleCurrentChapter(chapter);
-        handleCurrentChapterIndex(chapterDocIndex);
-        handleFetchPercentage(currentBook);
-        // setState({
-        //   chapter,
-        //   chapterDocIndex,
-        // });
-        setChapter(chapter);
-        setChapterDocIndex(chapterDocIndex);
-        scrollContents(chapter, bookLocation.chapterHref);
-        StyleUtil.addDefaultCss();
-        tsTransform();
-        binicReadingProcess();
-        handleBindGesture();
-        handleHighlight(rendition);
-          lock.current = true;
-        setTimeout(function () {
-          lock.current = false;
-        }, 1000);
-        return false;
+      this.props.handleCurrentChapter(chapter);
+      this.props.handleCurrentChapterIndex(chapterDocIndex);
+      this.props.handleFetchPercentage(this.props.currentBook);
+      this.setState({
+        chapter,
+        chapterDocIndex,
       });
-    },
-    [
-      currentBook.key,
-      handleHtmlBook,
-      handleCurrentChapter,
-      handleCurrentChapterIndex,
-      handleFetchPercentage,
-    ]
-  );
+      scrollContents(chapter, bookLocation.chapterHref);
+      StyleUtil.addDefaultCss();
+      tsTransform();
+      binicReadingProcess();
+      this.handleBindGesture();
+      this.handleHighlight(rendition);
+      lock = true;
+      setTimeout(function () {
+        lock = false;
+      }, 1000);
+      return false;
+    });
+  };
 
-  const handleLocation = useCallback(() => {
-    if (!htmlBook) {
+  handleLocation = () => {
+    if (!this.props.htmlBook) {
       return;
     }
-    const position = htmlBook.rendition.getPosition();
+    let position = this.props.htmlBook.rendition.getPosition();
     RecordLocation.recordHtmlLocation(
-      currentBook.key,
+      this.props.currentBook.key,
       position.text,
       position.chapterTitle,
       position.chapterDocIndex,
@@ -350,72 +290,113 @@ const Viewer: React.FC<ViewerProps> = ({
       position.cfi,
       position.page
     );
-  }, [htmlBook, currentBook.key]);
-
-  const handleBindGesture = useCallback(() => {
-    const doc = getIframeDoc();
+  };
+  handleBindGesture = () => {
+    let doc = getIframeDoc();
     if (!doc) return;
+    doc.addEventListener("click", (event) => {
+      this.props.handleLeaveReader("left");
+      this.props.handleLeaveReader("right");
+      this.props.handleLeaveReader("top");
+      this.props.handleLeaveReader("bottom");
+    });
+    doc.addEventListener("mouseup", () => {
+      if (this.state.isDisablePopup) {
+        if (doc!.getSelection()!.toString().trim().length === 0) {
+          let rect = doc!.getSelection()!.getRangeAt(0).getBoundingClientRect();
+          this.setState({ rect });
+        }
+      }
+      if (this.state.isDisablePopup) return;
 
-    // ... (keep the existing handleBindGesture logic)
-  }, [isDisablePopup, isTouch]);
+      var rect = doc!.getSelection()!.getRangeAt(0).getBoundingClientRect();
+      this.setState({ rect });
+    });
+    doc.addEventListener("contextmenu", (event) => {
+      if (document.location.href.indexOf("localhost") === -1) {
+        event.preventDefault();
+      }
 
-  return (
-    <>
-      {htmlBook && (
-        <PopupMenu
-          rendition={htmlBook.rendition}
-          rect={rect}
-          chapterDocIndex={chapterDocIndex}
-          chapter={chapter}
-        />
-      )}
-      {isOpenMenu &&
-        htmlBook &&
-        (menuMode === 'dict' || menuMode === 'trans' || menuMode === 'note') && (
+      if (!this.state.isDisablePopup && !this.state.isTouch) return;
+
+      if (
+        !doc!.getSelection() ||
+        doc!.getSelection()!.toString().trim().length === 0
+      )
+        return;
+      var rect = doc!.getSelection()!.getRangeAt(0).getBoundingClientRect();
+      console.log(rect);
+      this.setState({ rect });
+    });
+  };
+  render() {
+    return (
+      <>
+        {this.props.htmlBook ? (
+          <PopupMenu
+            {...{
+              rendition: this.props.htmlBook.rendition,
+              rect: this.state.rect,
+              chapterDocIndex: this.state.chapterDocIndex,
+              chapter: this.state.chapter,
+            }}
+          />
+        ) : null}
+        {this.props.isOpenMenu &&
+        this.props.htmlBook &&
+        (this.props.menuMode === "dict" ||
+          this.props.menuMode === "trans" ||
+          this.props.menuMode === "note") ? (
           <PopupBox
-            rendition={htmlBook.rendition}
-            rect={rect}
-            chapterDocIndex={chapterDocIndex}
-            chapter={chapter}
+            {...{
+              rendition: this.props.htmlBook.rendition,
+              rect: this.state.rect,
+              chapterDocIndex: this.state.chapterDocIndex,
+              chapter: this.state.chapter,
+            }}
+          />
+        ) : null}
+        {this.props.htmlBook && (
+          <ImageViewer
+            {...{
+              isShow: this.props.isShow,
+              rendition: this.props.htmlBook.rendition,
+              handleEnterReader: this.props.handleEnterReader,
+              handleLeaveReader: this.props.handleLeaveReader,
+            }}
           />
         )}
-      {htmlBook && (
-        <ImageViewer
-          isShow={isShow}
-          rendition={htmlBook.rendition}
-          handleEnterReader={handleEnterReader}
-          handleLeaveReader={handleLeaveReader}
-        />
-      )}
-      <div
-        className={
-          readerMode === 'scroll'
-            ? 'html-viewer-page scrolling-html-viewer-page'
-            : 'html-viewer-page'
-        }
-        id="page-area"
-        style={
-          readerMode === 'scroll' && document.body.clientWidth >= 570
-            ? {
-                marginLeft: pageOffset,
-                marginRight: pageOffset,
-                paddingLeft: '20px',
-                paddingRight: '15px',
-                left: 0,
-                right: 0,
-              }
-            : {
-                left: pageOffset,
-                width: pageWidth,
-              }
-        }
-      ></div>
-      <PageWidget />
-      {StorageUtil.getReaderConfig('isHideBackground') === 'yes' ? null : currentBook.key ? (
-        <Background />
-      ) : null}
-    </>
-  );
-};
-
-export default Viewer;
+        <div
+          className={
+            this.state.readerMode === "scroll"
+              ? "html-viewer-page scrolling-html-viewer-page"
+              : "html-viewer-page"
+          }
+          id="page-area"
+          style={
+            this.state.readerMode === "scroll" &&
+            document.body.clientWidth >= 570
+              ? {
+                  marginLeft: this.state.pageOffset,
+                  marginRight: this.state.pageOffset,
+                  paddingLeft: "20px",
+                  paddingRight: "15px",
+                  left: 0,
+                  right: 0,
+                }
+              : {
+                  left: this.state.pageOffset,
+                  width: this.state.pageWidth,
+                }
+          }
+        ></div>
+        <PageWidget />
+        {StorageUtil.getReaderConfig("isHideBackground") === "yes" ? null : this
+            .props.currentBook.key ? (
+          <Background />
+        ) : null}
+      </>
+    );
+  }
+}
+export default withRouter(Viewer as any);

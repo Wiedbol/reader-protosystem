@@ -1,32 +1,34 @@
-import React, { useEffect, useCallback } from "react";
-import { ViewModeProps } from "./interface";
+import React from "react";
 import "./viewMode.css";
+import { ViewModeProps, ViewModeState } from "./interface";
 import StorageUtil from "../../utils/serviceUtils/storageUtil";
 import { viewMode } from "../../constants/viewMode";
 
-const ViewMode: React.FC<ViewModeProps> = (props) => {
-  
-  const handleChange = useCallback((mode: string) => {
+class ViewMode extends React.Component<ViewModeProps, ViewModeState> {
+  constructor(props: ViewModeProps) {
+    super(props);
+    this.state = {};
+  }
+  handleChange = (mode: string) => {
     StorageUtil.setReaderConfig("viewMode", mode);
-    props.handleFetchList();
+    this.props.handleFetchList();
     setTimeout(() => {
-      lazyLoad();
+      this.lazyLoad();
     }, 0);
-  }, [props]);
-
-  const lazyLoad = useCallback(() => {
+  };
+  lazyLoad = () => {
     const lazyImages: any = document.querySelectorAll(".lazy-image");
 
     lazyImages.forEach((lazyImage) => {
-      if (isElementInViewport(lazyImage) && lazyImage.dataset.src) {
+      if (this.isElementInViewport(lazyImage) && lazyImage.dataset.src) {
         lazyImage.src = lazyImage.dataset.src;
         lazyImage.classList.remove("lazy-image");
       }
     });
-  }, []);
-
-  const isElementInViewport = useCallback((element: any) => {
+  };
+  isElementInViewport = (element) => {
     const rect = element.getBoundingClientRect();
+
     return (
       rect.top >= 0 &&
       rect.left >= 0 &&
@@ -34,34 +36,30 @@ const ViewMode: React.FC<ViewModeProps> = (props) => {
         (window.innerHeight || document.documentElement.clientHeight) &&
       rect.right <= (window.innerWidth || document.documentElement.clientWidth)
     );
-  }, []);
-
-  useEffect(() => {
-    lazyLoad();
-  }, [lazyLoad]);
-
-  return (
-    <div className="book-list-view">
-      {viewMode.map((item) => (
-        <div
-          className="card-list-mode"
-          onClick={() => {
-            handleChange(item.mode);
-          }}
-          style={props.viewMode !== item.mode ? { opacity: 0.5 } : {}}
-          key={item.mode}
-        >
-          <span
-            data-tooltip-id="my-tooltip"
-            data-tooltip-content={item.name}
+  };
+  render() {
+    return (
+      <div className="book-list-view">
+        {viewMode.map((item) => (
+          <div
+            className="card-list-mode"
+            onClick={() => {
+              this.handleChange(item.mode);
+            }}
+            style={this.props.viewMode !== item.mode ? { opacity: 0.5 } : {}}
+            key={item.mode}
           >
-            <span className={`icon-${item.icon}`}></span>
-          </span>
-        </div>
-      ))}
-    </div>
-  );
-};
+            <span
+              data-tooltip-id="my-tooltip"
+              data-tooltip-content={this.props.t(item.name)}
+            >
+              <span className={`icon-${item.icon}`}></span>
+            </span>
+          </div>
+        ))}
+      </div>
+    );
+  }
+}
 
 export default ViewMode;
-

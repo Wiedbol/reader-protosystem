@@ -1,33 +1,17 @@
-import { useDispatch, useSelector } from "react-redux"
-import { AppDispatch, RootState } from "../../../store"
-import { handleCurrentChapter, handleCurrentChapterIndex } from "../../../store/slices";
-import { ContentListProps } from "./interface";
+import { connect } from "react-redux";
+import { stateType } from "../../../store";
 import ContentList from "./component";
-import React from "react";
-
-interface ContentListContainerProps {
-
-}
-
-const ContentListContainer: React.FC<ContentListContainerProps> = () => {
-
-  const dispatch = useDispatch<AppDispatch>();
-  const state = useSelector((state: RootState) => ({
+import {
+  handleCurrentChapter,
+  handleCurrentChapterIndex,
+} from "../../../store/actions";
+const mapStateToProps = (state: stateType) => {
+  return {
     currentBook: state.book.currentBook,
     chapters: state.reader.chapters,
     htmlBook: state.reader.htmlBook,
     renderBookFunc: state.book.renderBookFunc,
-  }))
-  const actionCreator = {
-    handleCurrentChapter: (chapter: string) => dispatch(handleCurrentChapter(chapter)),
-    handleCurrentChapterIndex: (index: number) => dispatch(handleCurrentChapterIndex(index)),
-  }
-  const props: ContentListProps = {
-    ...state,
-    ...actionCreator,
-  }
-
-  return <ContentList {...props} />
-}
-
-export default ContentListContainer;
+  };
+};
+const actionCreator = { handleCurrentChapter, handleCurrentChapterIndex };
+export default connect(mapStateToProps, actionCreator)(ContentList as any);
